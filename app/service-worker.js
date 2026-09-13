@@ -1,25 +1,27 @@
 /**
- * service-worker.js — app-shell offline caching (root-scoped).
+ * service-worker.js — offline caching (root-scoped), update-friendly.
  *
  * Subpath-safe: every precache entry is a path RELATIVE to this file's own
- * location. A service worker resolves relative fetch/cache URLs against its
- * own script URL (`self.location`), which already includes whatever subpath
- * the site is deployed under (e.g. GitHub Pages' `/learning-games/`) — so no
- * hardcoded root-absolute path is ever needed here.
+ * location. A service worker resolves relative fetch/cache URLs against its own
+ * script URL (`self.location`), which already includes whatever subpath the site
+ * is deployed under (e.g. GitHub Pages' `/learning-games/`) — so no hardcoded
+ * root-absolute path is ever needed here.
  *
- * Strategy:
- *  - Navigations (HTML page loads): network-first, falling back to the cache
- *    and finally to `offline.html` when there's no network and no cache hit.
- *  - Everything else (css/js/manifest/icons): stale-while-revalidate — serve
- *    the cached copy immediately and refresh it from the network in the
- *    background, so edits propagate on the next load. Only OK, non-redirected
- *    responses are ever cached.
+ * Strategy: NETWORK-FIRST for every same-origin GET, falling back to the cache
+ * when offline (and to offline.html for navigations). This guarantees a new
+ * deploy shows up immediately for returning visitors — no stale shell — while
+ * still working offline from the last-seen copy. (During active iteration we
+ * favor freshness over the marginal speed of cache-first; we can reintroduce
+ * stale-while-revalidate for static media once content stabilizes.) Only OK,
+ * non-redirected responses are ever cached.
+ *
+ * Bump CACHE_VERSION whenever the precached shell should be replaced.
  */
 
-const CACHE_VERSION = "v1";
+const CACHE_VERSION = "v2";
 const CACHE_NAME = `lg-shell-${CACHE_VERSION}`;
 
-/** Core app shell, precached on install. Paths are relative to this file. */
+/** Core app shell, precached on install so the app can cold-start offline. */
 const PRECACHE_URLS = [
   "./",
   "index.html",
@@ -63,12 +65,13 @@ self.addEventListener("activate", (event) => {
 });
 
 /**
- * Network-first navigation handler, falling back to the cached shell and
- * finally to the offline page.
+ * Network-first handler: try the network (caching OK, non-redirected responses),
+ * and fall back to the cache when offline — to `offline.html` for navigations.
  * @param {Request} request
+ * @param {{ isNavigation: boolean }} options
  * @returns {Promise<Response>}
  */
-async function handleNavigation(request) {
+async function networkFirst(request, { isNavigation }) {
   const cache = await caches.open(CACHE_NAME);
   try {
     const networkResponse = await fetch(request);
@@ -78,36 +81,14 @@ async function handleNavigation(request) {
     return networkResponse;
   } catch {
     const cached = await cache.match(request);
-    return cached ?? (await cache.match("shared/offline.html")) ?? Response.error();
+    if (cached) {
+      return cached;
+    }
+    if (isNavigation) {
+      return (await cache.match("shared/offline.html")) ?? Response.error();
+    }
+    return Response.error();
   }
-}
-
-/**
- * Cache-first handler for static assets, populating the cache on a miss.
- * @param {Request} request
- * @returns {Promise<Response>}
- */
-async function handleAsset(request, event) {
-  const cache = await caches.open(CACHE_NAME);
-  const cached = await cache.match(request);
-
-  // Revalidate from the network, caching only OK, non-redirected responses so a
-  // transient 404/500 (or a trailing-slash redirect) never poisons the cache.
-  const revalidate = fetch(request)
-    .then((networkResponse) => {
-      if (networkResponse.ok && !networkResponse.redirected) {
-        cache.put(request, networkResponse.clone());
-      }
-      return networkResponse;
-    })
-    .catch(() => undefined);
-
-  if (cached) {
-    // Stale-while-revalidate: serve the cached copy now, refresh for next load.
-    event.waitUntil(revalidate);
-    return cached;
-  }
-  return (await revalidate) ?? Response.error();
 }
 
 self.addEventListener("fetch", (event) => {
@@ -117,10 +98,5 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
-  if (request.mode === "navigate") {
-    event.respondWith(handleNavigation(request));
-    return;
-  }
-
-  event.respondWith(handleAsset(request, event));
+  event.respondWith(networkFirst(request, { isNavigation: request.mode === "navigate" }));
 });
