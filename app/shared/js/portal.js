@@ -25,9 +25,11 @@ function matchesFilters(game, state) {
     return false;
   }
   const range = AGE_RANGES.find((r) => r.id === state.ageId) ?? AGE_RANGES[0];
-  // A game shows for a band only if it covers the whole band (its range ⊇ the
-  // band); "all" shows everything. So a 5–9 game appears under 6–8 but not 9–12.
-  const ageOk = range.id === "all" || (game.minAge <= range.min && game.maxAge >= range.max);
+  // A game shows for a band whenever its [minAge, maxAge] overlaps the band
+  // at all (not only when it fully covers it); "all" shows everything. So a
+  // 5–9 game appears under both 6–8 and 9–12 (per AGENTS.md's documented
+  // overlap-based matching).
+  const ageOk = range.id === "all" || (game.minAge <= range.max && game.maxAge >= range.min);
   return ageOk;
 }
 

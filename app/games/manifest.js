@@ -38,6 +38,16 @@ export const games = [
     path: "games/fast-calc/index.html",
     locked: false,
   },
+  {
+    id: "numbers-maze",
+    title: "מבוך המספרים",
+    genre: "מתמטיקה",
+    minAge: 3,
+    maxAge: 5,
+    icon: "🔢",
+    path: "games/numbers-maze/index.html",
+    locked: false,
+  },
 ];
 
 /** Genres used by the portal's filter controls (Hebrew labels). */

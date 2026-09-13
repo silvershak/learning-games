@@ -331,8 +331,8 @@
   margin-block-start: var(--space-3);
 }
 
-/* --- Confetti (hand-written, no external library) --- */
-.fastcalc-confetti {
+/* --- Confetti (shared/js/confetti.js builds the DOM; this owns the styling) --- */
+.confetti {
   position: fixed;
   inset: 0;
   overflow: hidden;
@@ -340,19 +340,19 @@
   z-index: 50;
 }
 
-.fastcalc-confetti__piece {
+.confetti__piece {
   position: absolute;
   inset-block-start: -5%;
   inline-size: 0.6rem;
   block-size: 1rem;
   border-radius: var(--radius-sm);
   opacity: 0.9;
-  animation-name: fastcalc-confetti-fall;
+  animation-name: confetti-fall;
   animation-timing-function: linear;
   animation-fill-mode: forwards;
 }
 
-@keyframes fastcalc-confetti-fall {
+@keyframes confetti-fall {
   from {
     transform: translateY(-10%) rotate(0deg);
     opacity: 1;

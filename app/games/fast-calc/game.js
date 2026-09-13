@@ -13,7 +13,8 @@ import { applyDir, t } from "../../shared/js/i18n.js";
 import { renderHeader } from "../../shared/js/nav.js";
 import * as storage from "../../shared/js/storage.js";
 import { preload, play as playSound } from "../../shared/js/audio.js";
-import { clamp, randomInt, sample } from "../../shared/js/util.js";
+import { clamp, randomInt } from "../../shared/js/util.js";
+import { launchConfetti } from "../../shared/js/confetti.js";
 import { operations, getOperation } from "./operations.js";
 
 /** Storage scope for this game's best-time records (see storage.js). */
@@ -30,12 +31,6 @@ export const WRONG_COOLDOWN_MS = 3000;
 
 /** Brief pause after a correct answer so the highlight is visible before advancing. */
 const CORRECT_ADVANCE_DELAY_MS = 400;
-
-/** How long the confetti burst stays on screen, in milliseconds. */
-const CONFETTI_DURATION_MS = 3200;
-
-const CONFETTI_PIECE_COUNT = 60;
-const CONFETTI_COLORS = ["#c43d0a", "#2b5fd9", "#23803a", "#f2b705", "#8e44ad"];
 
 preload("correct", "../../assets/sounds/correct.mp3");
 preload("wrong", "../../assets/sounds/wrong.mp3");
@@ -760,31 +755,6 @@ function renderFinish(elapsedSeconds, gapKey, gapVars) {
 
   playSound("celebrate");
   launchConfetti(container);
-}
-
-/**
- * Hand-written confetti burst (no external library): a scattering of
- * absolutely-positioned pieces that fall and fade via a CSS animation.
- * @param {HTMLElement} container - View element to render the burst into.
- * @returns {void}
- */
-function launchConfetti(container) {
-  const confetti = document.createElement("div");
-  confetti.className = "fastcalc-confetti";
-  confetti.setAttribute("aria-hidden", "true");
-
-  for (let i = 0; i < CONFETTI_PIECE_COUNT; i += 1) {
-    const piece = document.createElement("span");
-    piece.className = "fastcalc-confetti__piece";
-    piece.style.insetInlineStart = `${randomInt(0, 100)}%`;
-    piece.style.backgroundColor = sample(CONFETTI_COLORS);
-    piece.style.animationDelay = `${randomInt(0, 400)}ms`;
-    piece.style.animationDuration = `${randomInt(1800, 2800)}ms`;
-    confetti.append(piece);
-  }
-
-  container.append(confetti);
-  window.setTimeout(() => confetti.remove(), CONFETTI_DURATION_MS);
 }
 
 /**
