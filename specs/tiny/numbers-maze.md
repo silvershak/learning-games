@@ -9,7 +9,7 @@
 ## What
 
 A counting game for the youngest players. On a start screen the kid picks **how many
-numbers** to play with (10, 25, 50, 75 or 100) as big tappable cards. A grid of numbers
+numbers** to play with (10, 25 or 50) as big tappable cards. A grid of numbers
 appears; hidden inside it is a snaking route `1, 2, 3 … N` where every consecutive
 number sits in an **orthogonally adjacent** cell (up/down/left/right — never diagonal).
 Every other cell holds a plausible distractor number. The kid puts a finger on `1` and
@@ -40,7 +40,7 @@ choose a language — it just contributes its display strings to the shared i18n
 
 ## Requirements
 
-1. **Start screen**: a prompt plus five big count cards — **10, 25, 50, 75, 100** — each
+1. **Start screen**: a prompt plus three big count cards — **10, 25, 50** — each
    a ≥88px tappable card showing the numeral large (the numeral itself is the main
    affordance; a 3-year-old who cannot read still recognises it). A card the player has
    completed before carries a small ⭐ badge with an accessible label. The last-played
@@ -56,8 +56,6 @@ choose a language — it just contributes its display strings to the shared i18n
    | 10        | 4 × 4       | 16    | 6           | 63%  | ~85px                    |
    | 25        | 5 × 7       | 35    | 10          | 71%  | ~68px                    |
    | 50        | 7 × 10      | 70    | 20          | 71%  | ~48px                    |
-   | 75        | 8 × 13      | 104   | 29          | 72%  | ~42px                    |
-   | 100       | 9 × 15      | 135   | 35          | 74%  | ~37px                    |
 
    Rationale: (a) **portrait shape** (rows ≥ cols) matches a phone held upright, which is
    how the board is actually played; (b) **~1.35–1.6× N cells** keeps distractor density
@@ -65,13 +63,9 @@ choose a language — it just contributes its display strings to the shared i18n
    backtracking; (c) **no scrolling** — a scrollable board and a drag gesture fight each
    other, and mid-drag scrolling would be unusable at this age, so fitting the board is
    preferred over enlarging cells.
-   **Accepted trade-off**: at 75 and 100 the cells fall to ~42px and ~37px, below the
-   constitution's 44px target. This is a deliberate, documented exception for the two
-   largest counts only (10/25/50 all clear 44px comfortably) and is mitigated by:
-   the cell gap collapsing from 6px to 2px below a 46px cell so the _touch_ target is
-   effectively the full cell pitch; a `clamp()` font that steps down only for 3-digit
-   values; and the fact that a mis-hit is **harmless** (red flash, no penalty), so
-   precision is never punished. See Open Questions for the staged-board alternative.
+   **75 and 100 are out of scope for this version** (decided: cell sizes below the 44px
+   touch-target guideline aren't worth the trade-off at this age; the count picker only
+   offers 10/25/50, all of which clear 44px comfortably).
    **Rotation/tablet**: the board keeps its per-count `cols × rows` and merely rescales
    to the new viewport — the layout is never regenerated, so rotating the device mid-game
    never destroys the board or the progress.
@@ -163,13 +157,13 @@ choose a language — it just contributes its display strings to the shared i18n
    id, matching its manifest entry. Deliberately no records or times (no competitive
    pressure at 3–5):
    - `lg:numbers-maze:last-count` → number — the count last played, used to pre-highlight
-     a card. Validate it is one of `[10, 25, 50, 75, 100]` before use.
+     a card. Validate it is one of `[10, 25, 50]` before use.
    - `lg:numbers-maze:completions` → `{ "10": 3, "25": 1, … }` — completions per count,
      powering the ⭐ badge. Coerce non-numeric/negative values to 0 on read.
      Stored data is untrusted and user-editable; a corrupt value must degrade to the
      default, never throw.
    - **Not persisted**: the board and mid-round progress. A reload starts a fresh board,
-     matching `fast-calc`'s ephemeral round state. See Open Questions.
+     matching `fast-calc`'s ephemeral round state (decided: simplicity over persistence).
 
 9. **RTL for a grid** — the board is a _spatial_ puzzle, not text, and needs **no
    direction special-casing**:
@@ -223,35 +217,24 @@ choose a language — it just contributes its display strings to the shared i18n
     all text through the shared i18n layer, all persistence through `storage.js`, confetti
     self-contained with no external library.
 
-## Open Questions / Risks
+## Decisions (resolved before implementation)
 
-1. **75 and 100 on a phone (highest risk).** Req. 2 accepts ~42px and ~37px cells to keep
-   the board scroll-free. The alternative worth a human decision is **staged boards**:
-   play 100 as four consecutive 25-cell boards (1–25, 26–50, …), keeping every cell ~68px
-   and every stage a legible win. That is meaningfully kinder for the age band but changes
-   the game's shape from "one big maze" to "a journey", so it is not a call to make
-   silently. A cheaper middle option is to gate 75/100 behind a hint that they suit a
-   tablet. **Decision needed before implementation.**
-2. **Confetti extraction touches `fast-calc`.** Sharing beats duplicating and the move is
-   mechanical (~30 lines), but it widens the diff into a shipped game and adds a line to
-   `PRECACHE_URLS`. If the reviewer prefers a minimal diff, duplicating a small confetti
-   inside `numbers-maze` is acceptable — say which.
-3. **Nothing survives a reload.** At 10 or 25 that is harmless; at 100, an accidental
-   reload discards several minutes of a small child's work. Persisting `{ count, path,
-progress }` under `lg:numbers-maze:in-progress` would fix it and is cheap — worth doing
-   now, or explicitly deferring?
-4. **Pre-existing doc/code mismatch, flagged not fixed.** `AGENTS.md` states the portal age
-   filter matches on **overlap**, but `portal.js:30` implements **containment**
-   (`game.minAge <= band.min && game.maxAge >= band.max`) and its own comment says so.
-   A 3–5 game matches the 3–5 band under either reading, so `numbers-maze` is unaffected —
-   but the contradiction is real and should be resolved in its own change.
-5. **Age band vs. the count picker.** The manifest says 3–5, yet 75 and 100 plainly are not
-   for a 3-year-old — the count picker is really the difficulty dial. Consider `maxAge: 6`
-   so the game also surfaces for older kids (note this interacts with question 4).
-6. **Scope note.** This tinyspec touches 9 files, above the 1–5 rule of thumb, but the
-   overflow is one-line additive edits (manifest, i18n, precache) plus the optional
-   confetti extraction; the game itself is 4 self-contained files, matching the
-   `fast-calc` precedent. Full SDD is not warranted.
+1. **75 and 100 dropped from scope.** The count picker offers only **10, 25, 50** — all
+   comfortably clear the 44px touch-target guideline at the grid sizes in req. 2. No
+   staged-board mechanic is needed.
+2. **Confetti extracted** to `app/shared/js/confetti.js`, shared by `fast-calc` and
+   `numbers-maze`, per req. 7.
+3. **No persistence of board/progress** — a reload always starts a fresh board (req. 8).
+   Only `last-count` and `completions` persist.
+4. **Portal age-filter mismatch** (`AGENTS.md` documents overlap; `portal.js:30`
+   implements containment) is a **pre-existing bug, unrelated to this feature**. It will
+   be fixed as its own small, separate commit on this branch — not mixed into the
+   numbers-maze diff — since it doesn't affect this game (a 3–5 game matches the 3–5 band
+   under either reading).
+5. **Scope note.** This tinyspec touches 8 files (plus one standalone portal-bugfix
+   commit), above the 1–5 rule of thumb, but the overflow is one-line additive edits
+   (manifest, i18n, precache) plus the confetti extraction; the game itself is 4
+   self-contained files, matching the `fast-calc` precedent. Full SDD is not warranted.
 
 ## Plan
 
@@ -286,15 +269,18 @@ progress }` under `lg:numbers-maze:in-progress` would fix it and is cheap — wo
 - [ ] Manual test on a real phone: every count fits without scrolling; drag never scrolls
       the page; lift-and-resume keeps progress; rotation preserves the board
 - [ ] `npm run lint`, `format:check`, `validate:html`, `check:links` all pass
+- [ ] Separate commit (not mixed with the above): fix `portal.js:30` age-filter to match
+      the overlap behavior documented in `AGENTS.md` (pre-existing bug, unrelated to
+      numbers-maze's own correctness)
 
 ## Done When
 
 - [ ] All tasks checked off
-- [ ] Every count (10/25/50/75/100) generates a valid 1→N orthogonal route with plausible
+- [ ] Every count (10/25/50) generates a valid 1→N orthogonal route with plausible
       distractors and no adjacent duplicate of the next expected number
 - [ ] A round can be completed by continuous drag, by lift-and-resume, and by tapping —
       and wrong cells never cost progress
-- [ ] Boards for all five counts fit a 360×640 phone with no scrolling
+- [ ] Boards for all three counts fit a 360×640 phone with no scrolling
 - [ ] `last-count` and `completions` persist across reload; corrupt values degrade safely
 - [ ] The game appears on the portal under מתמטיקה and the 3–5 band with no portal changes
 - [ ] All four project checks pass with no errors
