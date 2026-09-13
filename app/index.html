@@ -17,6 +17,7 @@
       <header class="page__header" id="page-header"></header>
       <main class="page__main">
         <div class="filters" id="filters"></div>
+        <h2 class="portal-heading" id="games-heading">משחקים</h2>
         <div class="portal-grid" id="grid"></div>
       </main>
     </div>
@@ -42,6 +43,10 @@
         games,
         GENRES
       );
+
+      const gamesHeading = document.getElementById("games-heading");
+      gamesHeading.textContent = t("portal.games");
+      gamesHeading.hidden = games.length === 0;
 
       if ("serviceWorker" in navigator) {
         window.addEventListener("load", () => {

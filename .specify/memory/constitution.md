@@ -29,13 +29,18 @@ right-to-left (RTL)**. Planned: **English (`en`), LTR**. All user-facing text mu
 through the shared i18n layer — no hard-coded strings in markup — and layout must be
 direction-agnostic (CSS logical properties only, never physical left/right). A new
 language is therefore added centrally without touching game logic. Games contribute
-their strings to i18n; they never restate or override the language policy.
+their strings to i18n; they never restate or override the language policy. Hebrew copy
+must be **gender-neutral (unisex)** — prefer forms identical for any gender (e.g. the
+singular «סיימת», «שלך»); when a phrase cannot be made neutral, ask which form to use
+rather than defaulting to masculine.
 
 ### IV. Kid-First, Accessible UX
 
 Button-first, minimal-text interfaces suitable for young children. Large touch targets
 (≥44px), responsive for phone and tablet, visible focus states, sufficient color
-contrast, and no reliance on reading where an icon or sound will do.
+contrast, and no reliance on reading where an icon or sound will do. Copy is **simple
+and clear** for young kids, **spells words out** (no abbreviations — e.g. «שניות», never
+«שנ׳»), and **pairs an icon with text** wherever it aids comprehension.
 
 ### V. One Storage Gateway
 

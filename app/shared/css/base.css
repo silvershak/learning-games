@@ -239,6 +239,21 @@ body {
   color: var(--color-text-muted);
 }
 
+/* Full-width title above a filter group's chips (chips wrap onto the next row). */
+.filters__title {
+  flex-basis: 100%;
+  margin: 0;
+  font-size: var(--font-size-sm);
+  font-weight: 700;
+  color: var(--color-text-muted);
+}
+
+.portal-heading {
+  margin-block: var(--space-4) var(--space-3);
+  font-size: var(--font-size-lg);
+  font-weight: 700;
+}
+
 .chip {
   display: inline-flex;
   align-items: center;

@@ -42,14 +42,19 @@ installable/offline via PWA. Language/RTL/i18n policy is set by the constitution
   `inset-inline-start`, `text-align: start`) — never physical left/right.
 - All user-facing text goes through `app/shared/js/i18n.js`; no hard-coded strings in
   markup. A game contributes its strings; it never restates the language policy.
+- Hebrew copy is **gender-neutral (unisex)**, **simple/clear for kids**, **spells words
+  out** (no abbreviations — «שניות», not «שנ׳»), and **pairs an icon with text** where it
+  helps. If a phrase can't be made unisex, ask rather than defaulting to masculine.
 
 ### Storage
 
 - Only `app/shared/js/storage.js` touches `localStorage`/`sessionStorage`.
 - Durable data (progress, records, settings) → `localStorage`; ephemeral within-round
   state → in memory. Treat stored data as untrusted/editable.
-- **A game's storage scope is its game id**, so keys namespace as `lg:<game-id>:<key>`
-  (e.g. `lg:fast-calc:add-max20-q10`) and never collide across games.
+- **A game's storage scope is its game id** — the same id as its `app/games/manifest.js`
+  entry (the manifest is the id registry, so ids are unique and scopes never collide).
+  Games get a scoped store from the shared **`scoped(gameId)`** helper in `storage.js`;
+  keys namespace as `lg:<game-id>:<key>` (e.g. `lg:fast-calc:add-max20-q10`).
 
 ### Paths (subpath-safe)
 
@@ -79,6 +84,14 @@ Hebrew "חשבון מהיר") is a separate i18n string, never used as a key.
    locked?). Adding a game should not require editing portal code — only its metadata.
 5. Write the tiny spec first (`specs/tiny/<id>.md`) and keep docs updated in the same
    commit.
+
+## Portal
+
+`app/index.html` renders game cards from `app/games/manifest.js` with genre + age
+filters (filter headings **"סוג משחק"** / **"גילאים"**; game-list heading **"משחקים"**).
+The **age filter matches on overlap** — a game shows when its `[minAge, maxAge]` overlaps
+the selected band (e.g. a 5–9 game appears under a 9–12 filter), not only when fully
+contained. Adding a game requires no portal code changes — only a manifest entry.
 
 ## Development process (the loop)
 
@@ -121,6 +134,8 @@ The Opus review (step 4) complements, but does not replace, the automated CI gat
 - `npm run dev` → serves `app/` at http://localhost:8000 and prints a **LAN URL** for
   phone/tablet testing on the same Wi-Fi.
 - Or: `python -m http.server 8000 --directory app`.
+- Or the **VS Code "Live Server"** extension (auto-reloads on save) — but it serves the
+  repo root, so open `http://localhost:5500/app/` (note the `/app/` prefix; default port 5500).
 - **PWA caveat**: service workers only register over HTTPS or `localhost`. On a phone via
   `http://<LAN-IP>:8000` the game works, but offline/install won't — use a tunnel
   (cloudflared/ngrok) or USB port-forwarding for on-device PWA testing.

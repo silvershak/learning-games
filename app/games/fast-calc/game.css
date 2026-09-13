@@ -1,0 +1,372 @@
+/*
+ * game.css — fast-calc: start selectors, equation, answer grid, cooldown,
+ * confetti. Built on the shared design tokens (theme.css); logical
+ * properties only, no physical left/right.
+ */
+
+.fastcalc {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-5);
+  padding-block: var(--space-4);
+  text-align: center;
+}
+
+.fastcalc-heading {
+  font-size: var(--font-size-xl);
+  font-weight: 700;
+  margin: 0;
+}
+
+/* --- Start screen --- */
+.fastcalc-start {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-5);
+  inline-size: 100%;
+  max-inline-size: 32rem;
+}
+
+.fastcalc-group {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+  inline-size: 100%;
+}
+
+.fastcalc-group__label {
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  color: var(--color-text-muted);
+}
+
+.fastcalc-group__label-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  inline-size: 100%;
+}
+
+.fastcalc-group__value {
+  font-size: var(--font-size-md);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--color-text);
+}
+
+.fastcalc-group__options {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--space-2);
+}
+
+.fastcalc-choice {
+  min-inline-size: var(--touch-target-min);
+}
+
+/* The operation chip shows the bare symbol (e.g. "+"); its accessible name
+   comes from aria-label, so it can afford to be large and text-light. */
+.fastcalc-choice--op {
+  font-size: var(--font-size-xl);
+  font-weight: 700;
+  min-inline-size: var(--touch-target-min);
+  padding-inline: var(--space-5);
+}
+
+/* --- Sliders (native <input type="range">, styled for touch + a difficulty
+   gradient on the max-result track). Wrapped with generous vertical space so
+   the effective touch/drag target clears the ~48px minimum even though the
+   visible track is thin. --- */
+.fastcalc-slider {
+  appearance: none;
+  -webkit-appearance: none;
+  inline-size: 100%;
+  block-size: 8px;
+  margin-block: var(--space-4);
+  background: transparent;
+  cursor: pointer;
+}
+
+.fastcalc-slider::-webkit-slider-runnable-track {
+  block-size: 8px;
+  border-radius: var(--radius-full);
+  background: var(--fastcalc-track-bg, var(--color-surface-alt));
+}
+
+.fastcalc-slider::-moz-range-track {
+  block-size: 8px;
+  border-radius: var(--radius-full);
+  background: var(--fastcalc-track-bg, var(--color-surface-alt));
+}
+
+.fastcalc-slider::-webkit-slider-thumb {
+  appearance: none;
+  -webkit-appearance: none;
+  inline-size: 32px;
+  block-size: 32px;
+  margin-block-start: -12px;
+  border-radius: 50%;
+  background-color: var(--color-primary);
+  border: 3px solid var(--color-surface);
+  box-shadow: var(--shadow-card);
+}
+
+.fastcalc-slider::-moz-range-thumb {
+  inline-size: 32px;
+  block-size: 32px;
+  border-radius: 50%;
+  background-color: var(--color-primary);
+  border: 3px solid var(--color-surface);
+  box-shadow: var(--shadow-card);
+}
+
+/* Difficulty gradient: green (easy/low) -> red (hard/high). Gradients only
+   accept physical direction keywords (no logical equivalent exists yet), so
+   the direction is flipped for RTL via :dir() rather than assuming a layout. */
+.fastcalc-slider--difficulty {
+  --fastcalc-track-bg: linear-gradient(
+    to right,
+    var(--color-success),
+    #f2b705,
+    var(--color-danger)
+  );
+}
+
+:dir(rtl) .fastcalc-slider--difficulty {
+  --fastcalc-track-bg: linear-gradient(to left, var(--color-success), #f2b705, var(--color-danger));
+}
+
+.fastcalc-record {
+  font-size: var(--font-size-md);
+  color: var(--color-text-muted);
+  min-block-size: 1.5em;
+}
+
+.fastcalc-clock-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--font-size-md);
+  cursor: pointer;
+}
+
+.fastcalc-clock-toggle input {
+  inline-size: 1.25rem;
+  block-size: 1.25rem;
+}
+
+.fastcalc-start-btn {
+  inline-size: 4.5rem;
+  block-size: 4.5rem;
+  border-radius: var(--radius-full);
+  padding: 0;
+  font-size: var(--font-size-2xl);
+}
+
+/* --- Play screen --- */
+.fastcalc-play {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-5);
+  inline-size: 100%;
+  max-inline-size: 32rem;
+}
+
+.fastcalc-hud {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: center;
+  gap: var(--space-4);
+}
+
+.fastcalc-progress {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+}
+
+.fastcalc-progress__dot {
+  inline-size: 0.75rem;
+  block-size: 0.75rem;
+  border-radius: 50%;
+  background-color: var(--color-surface-alt);
+  transition:
+    background-color 200ms ease,
+    transform 200ms ease;
+}
+
+.fastcalc-progress__dot.is-done {
+  background-color: var(--color-success);
+}
+
+.fastcalc-progress__dot.is-current {
+  background-color: var(--color-accent);
+  transform: scale(1.3);
+}
+
+.fastcalc-hud__timer {
+  font-size: var(--font-size-md);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--color-accent);
+}
+
+.fastcalc-hud__record {
+  font-size: var(--font-size-md);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--color-text-muted);
+}
+
+.fastcalc-equation {
+  font-size: var(--font-size-2xl);
+  font-weight: 700;
+  /* Math expressions read left-to-right even in an RTL (Hebrew) layout. */
+  direction: ltr;
+}
+
+.fastcalc-options {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-3);
+  inline-size: 100%;
+}
+
+.fastcalc-options.is-locked .fastcalc-option:not(.is-wrong):not(.is-correct) {
+  opacity: 0.6;
+}
+
+.fastcalc-option {
+  min-block-size: var(--touch-target-min);
+  font-size: var(--font-size-lg);
+}
+
+/* Correct-answer feedback: an instant color flash + "✓" (always shown) plus
+   a brief scale pop (<500ms). The pop is pure CSS animation, so it's
+   automatically collapsed to a no-motion flash under prefers-reduced-motion
+   by reset.css's global `animation-duration: 0.01ms` override — no extra
+   media query needed here. */
+.fastcalc-option.is-correct {
+  background-color: var(--color-success);
+  color: var(--color-on-success);
+  animation: fastcalc-correct-pop 380ms ease;
+}
+
+.fastcalc-option.is-correct::after {
+  content: "✓";
+  margin-inline-start: var(--space-2);
+  font-weight: 700;
+}
+
+@keyframes fastcalc-correct-pop {
+  0% {
+    transform: scale(1);
+  }
+
+  45% {
+    transform: scale(1.15);
+  }
+
+  100% {
+    transform: scale(1);
+  }
+}
+
+.fastcalc-option.is-wrong {
+  background-color: var(--color-danger);
+  color: var(--color-on-danger);
+}
+
+.fastcalc-cooldown {
+  font-size: var(--font-size-lg);
+  font-weight: 700;
+  color: var(--color-accent);
+  animation: fastcalc-pulse 1s ease-in-out infinite;
+}
+
+@keyframes fastcalc-pulse {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+
+  50% {
+    transform: scale(1.12);
+  }
+}
+
+/* --- Finish screen --- */
+.fastcalc-finish {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-4);
+  inline-size: 100%;
+  max-inline-size: 32rem;
+}
+
+.fastcalc-finish__time {
+  font-size: var(--font-size-2xl);
+  font-weight: 700;
+}
+
+.fastcalc-finish__gap {
+  font-size: var(--font-size-lg);
+  color: var(--color-text-muted);
+}
+
+.fastcalc-finish__actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--space-3);
+  margin-block-start: var(--space-3);
+}
+
+/* --- Confetti (hand-written, no external library) --- */
+.fastcalc-confetti {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 50;
+}
+
+.fastcalc-confetti__piece {
+  position: absolute;
+  inset-block-start: -5%;
+  inline-size: 0.6rem;
+  block-size: 1rem;
+  border-radius: var(--radius-sm);
+  opacity: 0.9;
+  animation-name: fastcalc-confetti-fall;
+  animation-timing-function: linear;
+  animation-fill-mode: forwards;
+}
+
+@keyframes fastcalc-confetti-fall {
+  from {
+    transform: translateY(-10%) rotate(0deg);
+    opacity: 1;
+  }
+
+  to {
+    transform: translateY(110vh) rotate(360deg);
+    opacity: 0.7;
+  }
+}
+
+/* --- Responsive: narrow phones stack the answer grid --- */
+@media (max-width: 26rem) {
+  .fastcalc-options {
+    grid-template-columns: 1fr;
+  }
+}

@@ -80,6 +80,10 @@ real devices. Plain Python works too:
 python -m http.server 8000 --directory app
 ```
 
+You can also use the **VS Code "Live Server"** extension (it auto-reloads on save).
+Note it serves the **repo root**, not `app/`, so open **`http://localhost:5500/app/`**
+(with the `/app/` prefix) — default port 5500.
+
 **PWA note:** service workers only register over HTTPS or `localhost`. Over a LAN IP the
 game plays fine, but offline/install won't activate — use a tunnel (cloudflared/ngrok)
 or USB port-forwarding for on-device PWA testing.

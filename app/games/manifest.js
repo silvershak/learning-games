@@ -27,7 +27,18 @@
  */
 
 /** @type {GameEntry[]} */
-export const games = [];
+export const games = [
+  {
+    id: "fast-calc",
+    title: "חשבון מהיר",
+    genre: "מתמטיקה",
+    minAge: 5,
+    maxAge: 9,
+    icon: "🧮",
+    path: "games/fast-calc/index.html",
+    locked: false,
+  },
+];
 
 /** Genres used by the portal's filter controls (Hebrew labels). */
 export const GENRES = ["שפה", "מתמטיקה", "היגיון", "זיכרון", "יצירתיות"];
