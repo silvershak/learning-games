@@ -8,16 +8,17 @@ import { randomInt, sample, shuffle } from "../../shared/js/util.js";
 
 /**
  * Grid dimensions (cols x rows) per supported count. Portrait-shaped
- * (rows >= cols) to match a phone held upright; cell counts are
- * ~1.35-1.6x the path length N, giving the generator enough slack to route
- * without heavy backtracking while keeping a meaningful distractor density.
- * 75 and 100 are out of scope for this version (see tinyspec req. 2).
+ * (rows >= cols) to match a phone held upright; cell counts are ~3x the
+ * path length N (a bigger board, a heavier majority of distractor/"stale"
+ * cells) — traded against a lower top count (20, not 50) so cells still
+ * clear the 44px touch-target guideline on a phone. See tinyspec req. 2
+ * (amended) for the sizing table and the trade-off this reflects.
  * @type {Object<number, {cols: number, rows: number}>}
  */
 export const GRID_BY_COUNT = {
-  10: { cols: 4, rows: 4 },
-  25: { cols: 5, rows: 7 },
-  50: { cols: 7, rows: 10 },
+  10: { cols: 5, rows: 6 },
+  15: { cols: 6, rows: 8 },
+  20: { cols: 6, rows: 10 },
 };
 
 /** Node-expansion cap per generation attempt — guarantees termination. */

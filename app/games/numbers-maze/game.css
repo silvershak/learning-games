@@ -135,7 +135,7 @@
  * the data-count attribute, matching the tinyspec's sizing table.
  */
 .maze__board {
-  --maze-board-block-budget: min(58dvh, 30rem);
+  --maze-board-block-budget: min(66dvh, 32rem);
   display: grid;
   grid-template-columns: repeat(var(--maze-cols), 1fr);
   grid-template-rows: repeat(var(--maze-rows), 1fr);
@@ -151,18 +151,18 @@
 }
 
 .maze__board[data-count="10"] {
-  --maze-gap: 8px;
-  --maze-font-size: 1.75rem;
-}
-
-.maze__board[data-count="25"] {
   --maze-gap: 6px;
-  --maze-font-size: 1.25rem;
+  --maze-font-size: 1.4rem;
 }
 
-.maze__board[data-count="50"] {
-  --maze-gap: 3px;
-  --maze-font-size: 0.9rem;
+.maze__board[data-count="15"] {
+  --maze-gap: 5px;
+  --maze-font-size: 1.1rem;
+}
+
+.maze__board[data-count="20"] {
+  --maze-gap: 4px;
+  --maze-font-size: 0.95rem;
 }
 
 .maze__cell {

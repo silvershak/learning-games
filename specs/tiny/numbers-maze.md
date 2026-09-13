@@ -9,7 +9,8 @@
 ## What
 
 A counting game for the youngest players. On a start screen the kid picks **how many
-numbers** to play with (10, 25 or 50) as big tappable cards. A grid of numbers
+numbers** to play with (10, 15 or 20 — see the "Amended" note under req. 2) as big
+tappable cards. A grid of numbers
 appears; hidden inside it is a snaking route `1, 2, 3 … N` where every consecutive
 number sits in an **orthogonally adjacent** cell (up/down/left/right — never diagonal).
 Every other cell holds a plausible distractor number. The kid puts a finger on `1` and
@@ -40,7 +41,8 @@ choose a language — it just contributes its display strings to the shared i18n
 
 ## Requirements
 
-1. **Start screen**: a prompt plus three big count cards — **10, 25, 50** — each
+1. **Start screen**: a prompt plus three big count cards — **10, 15, 20** (amended,
+   see req. 2) — each
    a ≥88px tappable card showing the numeral large (the numeral itself is the main
    affordance; a 3-year-old who cannot read still recognises it). A card the player has
    completed before carries a small ⭐ badge with an accessible label. The last-played
@@ -53,22 +55,29 @@ choose a language — it just contributes its display strings to the shared i18n
 
    | Count `N` | cols × rows | cells | distractors | fill | cell size @360×640 phone |
    | --------- | ----------- | ----- | ----------- | ---- | ------------------------ |
-   | 10        | 4 × 4       | 16    | 6           | 63%  | ~85px                    |
-   | 25        | 5 × 7       | 35    | 10          | 71%  | ~68px                    |
-   | 50        | 7 × 10      | 70    | 20          | 71%  | ~48px                    |
+   | 10        | 5 × 6       | 30    | 20          | 33%  | ~60px                    |
+   | 15        | 6 × 8       | 48    | 33          | 31%  | ~50px                    |
+   | 20        | 6 × 10      | 60    | 40          | 33%  | ~45px                    |
 
    Rationale: (a) **portrait shape** (rows ≥ cols) matches a phone held upright, which is
-   how the board is actually played; (b) **~1.35–1.6× N cells** keeps distractor density
-   meaningful while leaving the generator enough slack to route without heavy
-   backtracking; (c) **no scrolling** — a scrollable board and a drag gesture fight each
-   other, and mid-drag scrolling would be unusable at this age, so fitting the board is
-   preferred over enlarging cells.
+   how the board is actually played; (b) **no scrolling** — a scrollable board and a drag
+   gesture fight each other, and mid-drag scrolling would be unusable at this age, so
+   fitting the board is preferred over enlarging cells.
    **75 and 100 are out of scope for this version** (decided: cell sizes below the 44px
-   touch-target guideline aren't worth the trade-off at this age; the count picker only
-   offers 10/25/50, all of which clear 44px comfortably).
+   touch-target guideline aren't worth the trade-off at this age).
    **Rotation/tablet**: the board keeps its per-count `cols × rows` and merely rescales
    to the new viewport — the layout is never regenerated, so rotating the device mid-game
    never destroys the board or the progress.
+
+   **Amended (post-implementation, at the human's request):** the original table used
+   **10/25/50** at a modest ~1.35–1.6× cells-to-N ratio (63–71% path fill, i.e. only
+   ~30–37% distractor cells). The human asked for a **bigger board with more distractor
+   ("stale") cells**, explicitly trading the top count down to make room for it. The
+   table above reflects that: **counts are now 10/15/20** (50 and 25 dropped, not just
+   75/100), and the cells-to-N ratio is **~3×** (67–69% distractor cells, roughly double
+   the original density), while every cell size still clears the 44px touch-target
+   guideline at 360×640. The generator and distractor-fill algorithms (below) are
+   unchanged — only `GRID_BY_COUNT` and the count picker's options moved.
 
 3. **Path generation** (`maze.js`, pure, no DOM) — produce a non-self-intersecting
    orthogonal path of **exactly** N cells in the `cols × rows` grid:
@@ -157,8 +166,8 @@ choose a language — it just contributes its display strings to the shared i18n
    id, matching its manifest entry. Deliberately no records or times (no competitive
    pressure at 3–5):
    - `lg:numbers-maze:last-count` → number — the count last played, used to pre-highlight
-     a card. Validate it is one of `[10, 25, 50]` before use.
-   - `lg:numbers-maze:completions` → `{ "10": 3, "25": 1, … }` — completions per count,
+     a card. Validate it is one of `[10, 15, 20]` before use (amended, see req. 2).
+   - `lg:numbers-maze:completions` → `{ "10": 3, "15": 1, … }` — completions per count,
      powering the ⭐ badge. Coerce non-numeric/negative values to 0 on read.
      Stored data is untrusted and user-editable; a corrupt value must degrade to the
      default, never throw.
@@ -219,9 +228,9 @@ choose a language — it just contributes its display strings to the shared i18n
 
 ## Decisions (resolved before implementation)
 
-1. **75 and 100 dropped from scope.** The count picker offers only **10, 25, 50** — all
-   comfortably clear the 44px touch-target guideline at the grid sizes in req. 2. No
-   staged-board mechanic is needed.
+1. **75 and 100 dropped from scope.** The count picker offers only **10, 15, 20**
+   (amended post-implementation — see req. 2) — all comfortably clear the 44px
+   touch-target guideline at the grid sizes in req. 2. No staged-board mechanic is needed.
 2. **Confetti extracted** to `app/shared/js/confetti.js`, shared by `fast-calc` and
    `numbers-maze`, per req. 7.
 3. **No persistence of board/progress** — a reload always starts a fresh board (req. 8).
@@ -276,7 +285,7 @@ choose a language — it just contributes its display strings to the shared i18n
 ## Done When
 
 - [ ] All tasks checked off
-- [ ] Every count (10/25/50) generates a valid 1→N orthogonal route with plausible
+- [ ] Every count (10/15/20) generates a valid 1→N orthogonal route with plausible
       distractors and no adjacent duplicate of the next expected number
 - [ ] A round can be completed by continuous drag, by lift-and-resume, and by tapping —
       and wrong cells never cost progress

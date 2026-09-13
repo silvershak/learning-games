@@ -21,8 +21,8 @@ import { buildBoard } from "./maze.js";
 const STORAGE_SCOPE = "numbers-maze";
 const store = storage.scoped(STORAGE_SCOPE);
 
-/** The only counts this version supports (75/100 are out of scope). */
-const COUNT_OPTIONS = [10, 25, 50];
+/** The only counts this version supports — see tinyspec req. 2 (amended). */
+const COUNT_OPTIONS = [10, 15, 20];
 
 /** How long a wrong cell stays flashed red, in milliseconds (spec caps this at 400ms). */
 const RED_FLASH_MS = 400;
