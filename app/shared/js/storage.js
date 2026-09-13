@@ -216,3 +216,38 @@ export function isMuted() {
 export function setMuted(muted) {
   set(SETTINGS_SCOPE, MUTED_KEY, Boolean(muted));
 }
+
+const CLOCK_SHOWN_KEY = "clockShown";
+
+/**
+ * Reads whether the in-game clock/timer should be shown (defaults to true).
+ * @returns {boolean}
+ */
+export function isClockShown() {
+  return Boolean(get(SETTINGS_SCOPE, CLOCK_SHOWN_KEY, true));
+}
+
+/**
+ * Sets whether the in-game clock/timer should be shown.
+ * @param {boolean} shown
+ * @returns {void}
+ */
+export function setClockShown(shown) {
+  set(SETTINGS_SCOPE, CLOCK_SHOWN_KEY, Boolean(shown));
+}
+
+/**
+ * Returns a storage API bound to one game's scope, so a game never repeats its
+ * scope string. Pass the game's id — it MUST match the game's `games/manifest.js`
+ * entry (the manifest is the id registry, so scopes are unique and never collide).
+ * @param {string} gameId
+ * @returns {{ get: (key: string, fallback?: *) => *, set: (key: string, value: *) => void, remove: (key: string) => void, clearScope: () => void }}
+ */
+export function scoped(gameId) {
+  return {
+    get: (key, fallback) => get(gameId, key, fallback),
+    set: (key, value) => set(gameId, key, value),
+    remove: (key) => remove(gameId, key),
+    clearScope: () => clearScope(gameId),
+  };
+}

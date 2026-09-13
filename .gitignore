@@ -27,3 +27,6 @@ __pycache__/
 .claude/**/*.local.json
 
 # Spec Kit manages its own ignores in .specify/.gitignore
+
+# === Local scratch / notes (not shared) ===
+TODO.md

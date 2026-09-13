@@ -25,7 +25,9 @@ function matchesFilters(game, state) {
     return false;
   }
   const range = AGE_RANGES.find((r) => r.id === state.ageId) ?? AGE_RANGES[0];
-  const ageOk = game.minAge <= range.max && game.maxAge >= range.min;
+  // A game shows for a band only if it covers the whole band (its range ⊇ the
+  // band); "all" shows everything. So a 5–9 game appears under 6–8 but not 9–12.
+  const ageOk = range.id === "all" || (game.minAge <= range.min && game.maxAge >= range.max);
   return ageOk;
 }
 
@@ -121,6 +123,11 @@ function renderFilters(filtersEl, gridEl, games, genres, state) {
   genreGroup.setAttribute("role", "group");
   genreGroup.setAttribute("aria-label", t("filters.genre"));
 
+  const genreTitle = document.createElement("p");
+  genreTitle.className = "filters__title";
+  genreTitle.textContent = t("filters.genre");
+  genreGroup.append(genreTitle);
+
   const genreOptions = [
     { id: "all", label: t("filters.genre.all") },
     ...genres.map((g) => ({ id: g, label: g })),
@@ -143,6 +150,11 @@ function renderFilters(filtersEl, gridEl, games, genres, state) {
   ageGroup.className = "filters__group";
   ageGroup.setAttribute("role", "group");
   ageGroup.setAttribute("aria-label", t("filters.age"));
+
+  const ageTitle = document.createElement("p");
+  ageTitle.className = "filters__title";
+  ageTitle.textContent = t("filters.age");
+  ageGroup.append(ageTitle);
 
   for (const range of AGE_RANGES) {
     const chip = document.createElement("button");
