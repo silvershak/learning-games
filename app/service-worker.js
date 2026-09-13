@@ -18,7 +18,7 @@
  * Bump CACHE_VERSION whenever the precached shell should be replaced.
  */
 
-const CACHE_VERSION = "v2";
+const CACHE_VERSION = "v3";
 const CACHE_NAME = `lg-shell-${CACHE_VERSION}`;
 
 /** Core app shell, precached on install so the app can cold-start offline. */
@@ -36,6 +36,7 @@ const PRECACHE_URLS = [
   "shared/js/util.js",
   "shared/js/nav.js",
   "shared/js/portal.js",
+  "shared/js/confetti.js",
   "games/manifest.js",
   "assets/icons/icon.svg",
 ];

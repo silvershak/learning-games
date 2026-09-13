@@ -1,0 +1,302 @@
+/*
+ * game.css — numbers-maze: count picker, board grid, cell states, victory
+ * trace, confetti. Built on the shared design tokens (theme.css); logical
+ * properties only, no physical left/right.
+ *
+ * The board is a *spatial* puzzle, not text: under dir="rtl" CSS Grid flows
+ * its inline axis right-to-left, so column 0 renders at the right edge —
+ * which is correct for a Hebrew UI. No direction special-casing is applied
+ * here, and none should be added (see AGENTS.md / the tinyspec's RTL section).
+ */
+
+.maze {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-4);
+  padding-block: var(--space-4);
+  text-align: center;
+}
+
+.maze-heading {
+  font-size: var(--font-size-xl);
+  font-weight: 700;
+  margin: 0;
+}
+
+/* --- Start screen --- */
+.maze-start {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-5);
+  inline-size: 100%;
+  max-inline-size: 32rem;
+}
+
+.maze-start__prompt {
+  font-size: var(--font-size-md);
+  color: var(--color-text-muted);
+}
+
+.maze-start__cards {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--space-4);
+}
+
+.maze-count-card {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  inline-size: 6.5rem;
+  block-size: 6.5rem;
+  min-inline-size: 88px;
+  min-block-size: 88px;
+  border-radius: var(--radius-lg);
+  background-color: var(--color-surface);
+  box-shadow: var(--shadow-card);
+  border: 3px solid transparent;
+  transition:
+    box-shadow var(--transition-base),
+    transform var(--transition-base),
+    border-color var(--transition-fast);
+}
+
+.maze-count-card:hover {
+  box-shadow: var(--shadow-card-hover);
+  transform: translateY(-2px);
+}
+
+.maze-count-card.is-last {
+  border-color: var(--color-primary);
+}
+
+.maze-count-card__numeral {
+  font-size: var(--font-size-2xl);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--color-text);
+}
+
+.maze-count-card__badge {
+  position: absolute;
+  inset-block-start: -0.5rem;
+  inset-inline-end: -0.5rem;
+  font-size: var(--font-size-lg);
+  line-height: 1;
+}
+
+/* --- Play screen --- */
+.maze-play {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-3);
+  inline-size: 100%;
+  max-inline-size: 32rem;
+}
+
+.maze-instruction {
+  font-size: var(--font-size-md);
+  color: var(--color-text-muted);
+}
+
+.maze-hud {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.maze-hud__hint {
+  font-size: var(--font-size-lg);
+  font-weight: 700;
+  color: var(--color-accent);
+  font-variant-numeric: tabular-nums;
+}
+
+.maze-hud__progress {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+/* --- Board ---
+ * Sized from aspect-ratio + a computed inline-size cap so it always fits the
+ * viewport without scrolling: inline-size is the smaller of (a) the
+ * container's own width, and (b) whatever width keeps the block dimension
+ * within the board's vertical budget at this grid's ratio. Block-size is
+ * then derived automatically from aspect-ratio, so the board is guaranteed
+ * to respect both caps at once. --maze-cols/--maze-rows are set inline by
+ * game.js (they vary per count); per-count gap/font-size are set below via
+ * the data-count attribute, matching the tinyspec's sizing table.
+ */
+.maze__board {
+  --maze-board-block-budget: min(58dvh, 30rem);
+  display: grid;
+  grid-template-columns: repeat(var(--maze-cols), 1fr);
+  grid-template-rows: repeat(var(--maze-rows), 1fr);
+  gap: var(--maze-gap, var(--space-2));
+  aspect-ratio: var(--maze-cols) / var(--maze-rows);
+  inline-size: min(
+    100%,
+    34rem,
+    calc(var(--maze-board-block-budget) * var(--maze-cols) / var(--maze-rows))
+  );
+  margin-inline: auto;
+  touch-action: none;
+}
+
+.maze__board[data-count="10"] {
+  --maze-gap: 8px;
+  --maze-font-size: 1.75rem;
+}
+
+.maze__board[data-count="25"] {
+  --maze-gap: 6px;
+  --maze-font-size: 1.25rem;
+}
+
+.maze__board[data-count="50"] {
+  --maze-gap: 3px;
+  --maze-font-size: 0.9rem;
+}
+
+.maze__cell {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-inline-size: 0;
+  min-block-size: 0;
+  background-color: var(--color-surface);
+  color: var(--color-text);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-card);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  font-size: var(--maze-font-size, 1.25rem);
+  transition: background-color var(--transition-fast);
+}
+
+/* Green/red are paired with a shape change (a checkmark / cross glyph), never
+   colour alone — see tinyspec req. 10. */
+.maze__cell.is-green {
+  background-color: var(--color-success);
+  color: var(--color-on-success);
+  font-weight: 900;
+}
+
+.maze__cell.is-green::after {
+  content: "✓";
+  margin-inline-start: 0.15em;
+}
+
+.maze__cell.is-red {
+  background-color: var(--color-danger);
+  color: var(--color-on-danger);
+  font-weight: 900;
+  animation: maze-shake 300ms ease;
+}
+
+.maze__cell.is-red::after {
+  content: "✕";
+  margin-inline-start: 0.15em;
+}
+
+@keyframes maze-shake {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+
+  25% {
+    transform: translateX(-10%);
+  }
+
+  75% {
+    transform: translateX(10%);
+  }
+}
+
+/* Victory trace: a brief highlight pulse as the completed route replays
+   1->N. Under prefers-reduced-motion the global reset collapses the
+   animation to a near-instant static tint, per tinyspec req. 10. */
+.maze__cell.is-tracing {
+  background-color: var(--color-primary);
+  color: var(--color-on-primary);
+  animation: maze-trace-pulse 500ms ease;
+}
+
+@keyframes maze-trace-pulse {
+  0% {
+    transform: scale(1);
+  }
+
+  40% {
+    transform: scale(1.15);
+  }
+
+  100% {
+    transform: scale(1);
+  }
+}
+
+/* --- Win screen --- */
+.maze-win {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-4);
+  inline-size: 100%;
+  max-inline-size: 32rem;
+}
+
+.maze-win__body {
+  font-size: var(--font-size-lg);
+  color: var(--color-text-muted);
+}
+
+.maze-win__actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--space-3);
+  margin-block-start: var(--space-3);
+}
+
+/* --- Confetti (shared/js/confetti.js builds the DOM; this owns the styling,
+   duplicated from fast-calc/game.css since no shared CSS file is introduced) --- */
+.confetti {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 50;
+}
+
+.confetti__piece {
+  position: absolute;
+  inset-block-start: -5%;
+  inline-size: 0.6rem;
+  block-size: 1rem;
+  border-radius: var(--radius-sm);
+  opacity: 0.9;
+  animation-name: confetti-fall;
+  animation-timing-function: linear;
+  animation-fill-mode: forwards;
+}
+
+@keyframes confetti-fall {
+  from {
+    transform: translateY(-10%) rotate(0deg);
+    opacity: 1;
+  }
+
+  to {
+    transform: translateY(110vh) rotate(360deg);
+    opacity: 0.7;
+  }
+}
