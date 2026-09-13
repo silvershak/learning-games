@@ -1,0 +1,99 @@
+/*
+ * theme.css — design tokens (CSS custom properties).
+ * Import order: reset.css -> theme.css -> base.css (see base.css header).
+ *
+ * All colors below are chosen to keep at least a 4.5:1 contrast ratio between
+ * "on-*" text and its paired surface/fill (WCAG AA for normal text). Dark mode
+ * re-maps the neutral tokens (background/surface/text) via
+ * prefers-color-scheme; the brand colors (primary/accent/success/danger) stay
+ * legible with white text in both schemes.
+ */
+
+:root {
+  /* --- Color: neutrals (light scheme, default) --- */
+  --color-bg: #fff8f0;
+  --color-surface: #ffffff;
+  --color-surface-alt: #f2ede4;
+  --color-text: #24262b;
+  --color-text-muted: #5b5f6a;
+  --color-border: #e4ddd0;
+
+  /* --- Color: brand & semantic --- */
+  --color-primary: #2b5fd9;
+  --color-primary-hover: #234ead;
+  --color-on-primary: #ffffff;
+
+  --color-accent: #c43d0a;
+  --color-accent-hover: #9e3108;
+  --color-on-accent: #ffffff;
+
+  --color-success: #23803a;
+  --color-on-success: #ffffff;
+
+  --color-danger: #b3261e;
+  --color-on-danger: #ffffff;
+
+  --color-locked: #6b7280;
+  --color-locked-bg: #e9e9ec;
+  --color-on-locked: #ffffff;
+
+  --color-focus-ring: #2b5fd9;
+
+  /* --- Typography ---
+   * system-ui first for speed/native feel; Segoe UI and Noto Sans Hebrew give
+   * solid Hebrew glyph coverage on Windows/Android when installed. No
+   * @font-face / network fetch is involved — this is just a fallback list.
+   */
+  --font-family-base: system-ui, -apple-system, "Segoe UI", "Noto Sans Hebrew", Arial, sans-serif;
+
+  --font-size-sm: 0.875rem;
+  --font-size-md: 1rem;
+  --font-size-lg: 1.25rem;
+  --font-size-xl: 1.75rem;
+  --font-size-2xl: 2.25rem;
+
+  --line-height-base: 1.5;
+
+  /* --- Spacing scale --- */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.5rem;
+  --space-6: 2rem;
+  --space-7: 3rem;
+
+  /* --- Border radius scale --- */
+  --radius-sm: 0.5rem;
+  --radius-md: 1rem;
+  --radius-lg: 1.5rem;
+  --radius-full: 999px;
+
+  /* --- Sizing --- */
+  --touch-target-min: 48px; /* WCAG 2.5.5 minimum is 44px; kids get a bit more */
+  --container-max-width: 60rem;
+
+  /* --- Shadows --- */
+  --shadow-card: 0 2px 8px rgb(0 0 0 / 8%);
+  --shadow-card-hover: 0 4px 14px rgb(0 0 0 / 14%);
+
+  /* --- Motion --- */
+  --transition-fast: 120ms ease;
+  --transition-base: 200ms ease;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-bg: #14161a;
+    --color-surface: #1e2126;
+    --color-surface-alt: #262a31;
+    --color-text: #f3f4f6;
+    --color-text-muted: #b3b7c0;
+    --color-border: #34383f;
+
+    --color-locked-bg: #2c2f36;
+
+    --shadow-card: 0 2px 8px rgb(0 0 0 / 40%);
+    --shadow-card-hover: 0 4px 16px rgb(0 0 0 / 55%);
+  }
+}

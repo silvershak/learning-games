@@ -1,0 +1,29 @@
+# === OS junk ===
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# === Editors ===
+.idea/
+.vscode/
+*.swp
+*~
+
+# === Node (dev tooling ONLY: linters/formatters for CI) ===
+# Nothing from node_modules ever ships to the browser — the app is dependency-free.
+node_modules/
+npm-debug.log*
+yarn-error.log*
+.eslintcache
+
+# === Python / uv (local tooling only, e.g. the specify CLI) ===
+__pycache__/
+.venv/
+
+# === Claude Code ===
+# We DO commit .claude/skills and shared commands so forkers get the Spec Kit
+# workflow. We NEVER commit local settings, which may hold tokens/secrets.
+.claude/settings.local.json
+.claude/**/*.local.json
+
+# Spec Kit manages its own ignores in .specify/.gitignore

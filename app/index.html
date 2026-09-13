@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content="משחקי למידה לילדים" />
+    <meta name="theme-color" content="#2b5fd9" />
+    <link rel="manifest" href="manifest.json" />
+    <link rel="icon" href="assets/icons/icon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="shared/css/reset.css" />
+    <link rel="stylesheet" href="shared/css/theme.css" />
+    <link rel="stylesheet" href="shared/css/base.css" />
+    <title>משחקי למידה</title>
+  </head>
+  <body>
+    <div class="page">
+      <header class="page__header" id="page-header"></header>
+      <main class="page__main">
+        <div class="filters" id="filters"></div>
+        <div class="portal-grid" id="grid"></div>
+      </main>
+    </div>
+
+    <script type="module">
+      import { games, GENRES } from "./games/manifest.js";
+      import { applyDir, t } from "./shared/js/i18n.js";
+      import { renderHeader } from "./shared/js/nav.js";
+      import { initPortal } from "./shared/js/portal.js";
+
+      applyDir();
+
+      renderHeader(document.getElementById("page-header"), {
+        title: t("app.title"),
+        showBack: false,
+      });
+
+      initPortal(
+        {
+          filtersEl: document.getElementById("filters"),
+          gridEl: document.getElementById("grid"),
+        },
+        games,
+        GENRES
+      );
+
+      if ("serviceWorker" in navigator) {
+        window.addEventListener("load", () => {
+          navigator.serviceWorker.register("service-worker.js").catch(() => {
+            // Offline support is a progressive enhancement — ignore failures.
+          });
+        });
+      }
+    </script>
+  </body>
+</html>

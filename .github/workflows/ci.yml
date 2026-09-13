@@ -1,0 +1,52 @@
+name: CI
+
+# Runs on every PR into main and gates the merge (configure branch protection to
+# require the "Lint, validate & build preview" check). main is the only branch that
+# publishes to GitHub Pages (deploy from branch), so nothing here deploys.
+on:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  checks:
+    name: Lint, validate & build preview
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dev tooling
+        run: npm ci
+
+      - name: Lint (ESLint)
+        run: npm run lint
+
+      - name: Check formatting (Prettier)
+        run: npm run format:check
+
+      - name: Validate HTML
+        run: npm run validate:html
+
+      - name: Check internal links
+        run: npm run check:links
+
+      # Uploads the static site so reviewers can download and test the branch.
+      # (GitHub Pages hosts one site per repo, so there is no native per-PR URL;
+      # wire up Cloudflare Pages / Netlify later if live preview URLs are wanted.)
+      - name: Upload site preview artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: site-preview
+          if-no-files-found: ignore
+          path: app

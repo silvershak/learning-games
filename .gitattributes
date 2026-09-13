@@ -1,0 +1,13 @@
+# Normalize line endings to LF in the repository across all platforms.
+* text=auto eol=lf
+
+# Treat common binary assets as binary (no EOL normalization).
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.mp3 binary
+*.wav binary
+*.woff binary
+*.woff2 binary
