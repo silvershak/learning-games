@@ -61,7 +61,29 @@ export function goBack() {
 }
 
 /**
+ * What the header's back button currently does. A game with its own internal
+ * views (e.g. setup -> play -> win) can redirect this with `setBackHandler()`
+ * so back moves up one level of the game's own hierarchy instead of always
+ * leaving the page; `renderHeader()` resets it to `goBack` for a fresh page.
+ * @type {() => void}
+ */
+let backHandler = goBack;
+
+/**
+ * Redirects the header's back button to a game-local handler (e.g. "return
+ * to setup") instead of the page-leaving default. Pass a falsy value to
+ * restore the default (leave the page via `goBack()`).
+ * @param {(() => void)|null} [handler]
+ * @returns {void}
+ */
+export function setBackHandler(handler) {
+  backHandler = handler || goBack;
+}
+
+/**
  * Renders a shared header (back button + title) into a container element.
+ * Resets the back button to the page-leaving default; a game with its own
+ * internal views should call `setBackHandler()` after switching views.
  * @param {HTMLElement} target - Element to render the header into (replaces its content).
  * @param {Object} [options]
  * @param {string} [options.title] - Header title text; defaults to the app title.
@@ -71,6 +93,7 @@ export function goBack() {
 export function renderHeader(target, options = {}) {
   const { title = t("app.title"), showBack = true } = options;
 
+  backHandler = goBack;
   target.replaceChildren();
   target.classList.add("page__header");
 
@@ -79,7 +102,7 @@ export function renderHeader(target, options = {}) {
     backButton.type = "button";
     backButton.className = "back-button";
     backButton.textContent = `← ${t("nav.back")}`;
-    backButton.addEventListener("click", goBack);
+    backButton.addEventListener("click", () => backHandler());
     target.append(backButton);
   }
 

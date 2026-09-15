@@ -10,7 +10,7 @@
  */
 
 import { applyDir, t } from "../../shared/js/i18n.js";
-import { renderHeader } from "../../shared/js/nav.js";
+import { renderHeader, setBackHandler } from "../../shared/js/nav.js";
 import * as storage from "../../shared/js/storage.js";
 import { preload, play as playSound } from "../../shared/js/audio.js";
 import { clamp, randomInt } from "../../shared/js/util.js";
@@ -365,6 +365,8 @@ function buildQuestionCountGroup(onChange) {
  * @returns {void}
  */
 function renderStart() {
+  setBackHandler(null);
+
   const container = document.createElement("div");
   container.className = "fastcalc-start";
 
@@ -440,6 +442,8 @@ function handleStartRound() {
  * @returns {void}
  */
 function renderPlay() {
+  setBackHandler(renderStart);
+
   const container = document.createElement("div");
   container.className = "fastcalc-play";
 
@@ -710,6 +714,8 @@ function finishRound() {
  * @returns {void}
  */
 function renderFinish(elapsedSeconds, gapKey, gapVars) {
+  setBackHandler(renderStart);
+
   const container = document.createElement("div");
   container.className = "fastcalc-finish";
 
