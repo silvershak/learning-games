@@ -8,10 +8,46 @@
 
 ## What
 
+**Amended (post-implementation, at the human's request):** eight changes were made after
+the first implementation pass, all still consistent with the original design's mechanics
+(registry-based types, the round-robin sampler, the 44px touch floor, Tier A/B board
+sizing, the flip state machine): (1) **128 pairs was too many** — board sizes are now
+capped at 16 pairs (see req. 1/2's amendment) so every tier fits comfortably for a 3–8
+audience; (2) with the cap at 16, each existing emoji family (16 glyphs) is now **also
+offered as its own themed card type** (e.g. "just animals"), alongside the original mixed
+`emoji` and `colors` types (see req. 4's amendment); (3) a **solo best-moves record** was
+added, one per size × type combination, mirroring `fast-calc`'s best-time record pattern
+(new req. 9a, Decision 13); (4) a **board-centering bug** was fixed — a block-level CSS
+grid with no explicit width stretches to fill its container, so `margin-inline: auto`
+alone had no free space to center into; `justify-content: center` on `.mm-board` fixes it
+(Decision 14); (5) the **pair-peek strip removed entirely** (req. 3's peek-strip bullet,
+the `play.peek` string, and its DOM/CSS/`ResizeObserver` plumbing) — the human found it
+confusing to see appear/disappear, and with sizes capped at 16 pairs and only 4 columns
+(see (1)) the board essentially never needs Tier B scrolling any more, so the strip had
+lost its purpose (Decision 15); (6) a **play-count** was added alongside the best-moves
+record — one per size × type combination, incremented on every completed round
+(solo **or** 2-player, unlike the moves record which is solo-only), shown on the setup
+screen as "שיחקת {count} פעמים" (Decision 16, extends req. 9a); (7) a **board-sizing
+scrollbar bug** was fixed — the cell-size formula used `100vw`, which always includes the
+page's own vertical scrollbar gutter, so whenever the page's scrollbar appeared or
+disappeared (e.g. the 1-player vs. 2-player HUD differ in height) the formula briefly
+computed cells a few pixels too wide, tripping `.mm-board-container`'s `overflow: auto`
+into a transient horizontal scrollbar; fixed by making `.mm-board-container` a container
+query context (`container-type: inline-size`) and switching the formula to `100cqw`,
+which is measured from the container's own real layout width and can never disagree with
+it (Decision 17); (8) a **live moves counter** was added to the play HUD, updated after
+every second-card flip in both 1 and 2 players (Decision 18) — distinct from the
+setup-screen best-moves/play-count lines, which summarize _past_ rounds, this shows the
+_current_ round's attempt count in real time, per the human's request to "see the counter
+... after each click." The rest of this spec (including the original 4×4/8×8/16×16 table
+below and the pair-peek-strip description) is kept as the historical record of the first
+design pass, per this repo's convention (see `numbers-maze.md`'s own amendment).
+
 The classic pairs-matching (concentration) game. On a setup screen the player picks three
-things as big tappable cards — **board size** (4×4 / 8×8 / 16×16), **card type** (the
-visual content on a card's face: emoji glyphs or colored shapes), and **number of
-players** (1 or 2) — then the round starts.
+things as big tappable cards — **board size** (4×4 / 8×8 / 16×16 — amended to 4×4 / 4×6 /
+4×8, 8/12/16 pairs, see above), **card type** (the visual content on a card's face: emoji
+glyphs or colored shapes — amended to also offer one themed type per emoji family), and
+**number of players** (1 or 2) — then the round starts.
 
 Every card starts face-down. Tapping a card flips it face-up; tapping a second card
 either **matches** (both stay face-up, locked in place for the rest of the round) or
@@ -20,10 +56,11 @@ a pair resolves, so a third card can never be flipped mid-resolution. The round 
 every pair is found.
 
 In **1 player** the round is a calm solo hunt: a progress line ("מצאת 3 מתוך 8 זוגות"),
-no timer, no move counter, no record — deliberately, matching `numbers-maze`'s restraint
-for young players. In **2 players** a header shows whose turn it is and each player's
-live pair count; **a match keeps the turn, a miss passes it**; at the end the higher pair
-count is named (ties handled explicitly, and never as a loss for anyone).
+no timer — deliberately, matching `numbers-maze`'s restraint for young players — but it
+**does** track a best-moves record per size × type combination (amended, req. 9a). In
+**2 players** a header shows whose turn it is and each player's live pair count; **a match
+keeps the turn, a miss passes it**; at the end the higher pair count is named (ties
+handled explicitly, and never as a loss for anyone).
 
 There are **no photographic images anywhere**. A card face is a single large glyph (emoji)
 or a single large inline-SVG shape in one flat color, sized to dominate the card the way a
@@ -35,17 +72,17 @@ choose a language — it just contributes its display strings to the shared i18n
 
 ## Context
 
-| File                                        | Role                                                                                     |
-| ------------------------------------------- | ---------------------------------------------------------------------------------------- |
-| `app/games/memory-match/index.html`         | New — setup / play / end screens (imports shared CSS/JS)                                  |
-| `app/games/memory-match/cards.js`           | New — **pure** face registry (emoji pool, color-shape generator) + `buildDeck()`          |
-| `app/games/memory-match/game.js`            | New — view switching, flip controller, turn/score model, storage, end flow                |
-| `app/games/memory-match/game.css`           | New — setup cards, board grid, 3D flip, player colors (logical properties)                |
-| `app/games/manifest.js`                     | Modify — add `memory-match` entry (genre זיכרון, ages 3–8); `GENRES` unchanged            |
-| `app/shared/js/i18n.js`                     | Modify — add `memoryMatch.*` strings to both the `he` and `en` tables                     |
-| `app/shared/js/confetti.js`                 | Context — **reused as-is** for the end screen; already extracted for `numbers-maze`       |
-| `app/service-worker.js`                     | Context — **no change**: no new shared module, and per-game files are not precached       |
-| `app/shared/js/{storage,nav,util,audio}.js` | Context — `scoped()`, header/back, `shuffle`/`randomInt`/`sample`, sounds                 |
+| File                                        | Role                                                                                |
+| ------------------------------------------- | ----------------------------------------------------------------------------------- |
+| `app/games/memory-match/index.html`         | New — setup / play / end screens (imports shared CSS/JS)                            |
+| `app/games/memory-match/cards.js`           | New — **pure** face registry (emoji pool, color-shape generator) + `buildDeck()`    |
+| `app/games/memory-match/game.js`            | New — view switching, flip controller, turn/score model, storage, end flow          |
+| `app/games/memory-match/game.css`           | New — setup cards, board grid, 3D flip, player colors (logical properties)          |
+| `app/games/manifest.js`                     | Modify — add `memory-match` entry (genre זיכרון, ages 3–8); `GENRES` unchanged      |
+| `app/shared/js/i18n.js`                     | Modify — add `memoryMatch.*` strings to both the `he` and `en` tables               |
+| `app/shared/js/confetti.js`                 | Context — **reused as-is** for the end screen; already extracted for `numbers-maze` |
+| `app/service-worker.js`                     | Context — **no change**: no new shared module, and per-game files are not precached |
+| `app/shared/js/{storage,nav,util,audio}.js` | Context — `scoped()`, header/back, `shuffle`/`randomInt`/`sample`, sounds           |
 
 ## Requirements
 
@@ -100,8 +137,11 @@ choose a language — it just contributes its display strings to the shared i18n
    existing board and never regenerates the deck or loses progress.
 
    ```css
-   --mm-cell: clamp(44px, calc((100vw - 2 * var(--space-4)
-              - (var(--mm-cols) - 1) * var(--mm-gap)) / var(--mm-cols)), 96px);
+   --mm-cell: clamp(
+     44px,
+     calc((100vw - 2 * var(--space-4) - (var(--mm-cols) - 1) * var(--mm-gap)) / var(--mm-cols)),
+     96px
+   );
    ```
 
    - **44px is a hard floor, never violated.** AGENTS.md's touch-target rule wins over
@@ -139,7 +179,7 @@ choose a language — it just contributes its display strings to the shared i18n
 
 4. **Card types — a registry, not a boolean** (`cards.js`). A type is:
 
-   ```js
+   ```text
    { id, labelKey, icon, faces() }  // faces() -> Face[]
    ```
 
@@ -155,16 +195,16 @@ choose a language — it just contributes its display strings to the shared i18n
      kid-familiarity and for staying distinguishable at a 44px cell. The list is fixed
      content, written out in `cards.js`:
 
-     | Family (he)   | Glyphs                                              |
-     | ------------- | --------------------------------------------------- |
-     | חיות          | 🐶🐱🐭🐹🐰🦊🐻🐼🐨🐯🦁🐮🐷🐸🐵🐔                       |
-     | ציפורים וים   | 🐧🦅🦆🦉🦜🐢🐍🐙🦑🦀🐬🐳🐟🐠🦈🦐                       |
-     | חרקים וגינה   | 🐝🐛🦋🐌🐞🕷🌸🌻🌷🌹🌼🍀🌲🌴🌵🍄                       |
-     | פירות וירקות  | 🍎🍌🍇🍓🍉🍊🍋🍒🍑🥝🥕🌽🥦🍅🥑🍆                       |
-     | אוכל          | 🍞🧀🍕🍔🌭🍟🥨🍪🍩🎂🍭🍫🍿🥞🍦🍯                       |
-     | כלי תחבורה    | 🚗🚕🚌🚒🚑🚓🚜🚲🛵🚂🚀✈️🚁⛵🚢🛶                       |
-     | שמיים וטבע    | ☀️🌙⭐🌈☁️⛄❄️🔥💧🌊⚡🌍🌋🏔🏖🌪                       |
-     | חפצים ומשחק   | ⚽🏀🎾🎈🎁🧸🎨🖍✏️📚🔔🥁🎸🎺🔑⏰                       |
+     | Family (he)  | Glyphs                           |
+     | ------------ | -------------------------------- |
+     | חיות         | 🐶🐱🐭🐹🐰🦊🐻🐼🐨🐯🦁🐮🐷🐸🐵🐔 |
+     | ציפורים וים  | 🐧🦅🦆🦉🦜🐢🐍🐙🦑🦀🐬🐳🐟🐠🦈🦐 |
+     | חרקים וגינה  | 🐝🐛🦋🐌🐞🕷🌸🌻🌷🌹🌼🍀🌲🌴🌵🍄  |
+     | פירות וירקות | 🍎🍌🍇🍓🍉🍊🍋🍒🍑🥝🥕🌽🥦🍅🥑🍆 |
+     | אוכל         | 🍞🧀🍕🍔🌭🍟🥨🍪🍩🎂🍭🍫🍿🥞🍦🍯 |
+     | כלי תחבורה   | 🚗🚕🚌🚒🚑🚓🚜🚲🛵🚂🚀✈️🚁⛵🚢🛶 |
+     | שמיים וטבע   | ☀️🌙⭐🌈☁️⛄❄️🔥💧🌊⚡🌍🌋🏔🏖🌪    |
+     | חפצים ומשחק  | ⚽🏀🎾🎈🎁🧸🎨🖍✏️📚🔔🥁🎸🎺🔑⏰  |
 
      Rendered as text at `font-size: calc(var(--mm-cell) * 0.62)` with
      `line-height: 1` — the glyph fills the card like a picture would, it is not inline
@@ -179,11 +219,11 @@ choose a language — it just contributes its display strings to the shared i18n
      distinguishable for color-vision deficiency (shape carries the difference when hue
      doesn't).
 
-     | Axis   | Values                                                                             |
-     | ------ | ---------------------------------------------------------------------------------- |
-     | hue    | אדום `#e23b2e`, כתום `#ef7f18`, צהוב `#f2c40c`, ירוק `#2f9e44`, טורקיז `#0d9488`, כחול `#2b5fd9`, סגול `#7c3aed`, ורוד `#e857a6` |
-     | shape  | עיגול, ריבוע, משולש, מעוין, כוכב, לב, פלוס, סהר                                     |
-     | fill   | מלא (solid), קו (outline)                                                           |
+     | Axis  | Values                                                                                                                           |
+     | ----- | -------------------------------------------------------------------------------------------------------------------------------- |
+     | hue   | אדום `#e23b2e`, כתום `#ef7f18`, צהוב `#f2c40c`, ירוק `#2f9e44`, טורקיז `#0d9488`, כחול `#2b5fd9`, סגול `#7c3aed`, ורוד `#e857a6` |
+     | shape | עיגול, ריבוע, משולש, מעוין, כוכב, לב, פלוס, סהר                                                                                  |
+     | fill  | מלא (solid), קו (outline)                                                                                                        |
 
      Shapes are **inline SVG paths** from a `SHAPE_PATHS` map (a 100×100 `viewBox`, one
      `<path>` per shape) — crisp at any cell size, no image files, no `clip-path`
@@ -213,7 +253,7 @@ choose a language — it just contributes its display strings to the shared i18n
        (Decision 7), then flip both back and clear `state.busy`. In 2 players the turn
        passes to the other player at the moment the cards flip back, not before, so the
        header does not change identity while the player is still reading the faces.
-   - **Tap-to-hurry**: a tap *anywhere* (board, card, or page) during the 1100ms hold
+   - **Tap-to-hurry**: a tap _anywhere_ (board, card, or page) during the 1100ms hold
      cancels the remaining wait and resolves the mismatch immediately. That tap is
      **consumed** — it never also flips a card. This gives an impatient 8-year-old a fast
      path without letting a stray tap queue a flip. Implemented as a one-shot capture-phase
@@ -260,7 +300,7 @@ choose a language — it just contributes its display strings to the shared i18n
      `backface-visibility: hidden`. 220ms is fast enough to feel responsive on 256 cards
      and slow enough for a young child to perceive as "turning over".
    - **Glyph reveal**: the face content animates `opacity 0→1` and `scale .6→1` over 150ms,
-     delayed 110ms so it lands as the card passes edge-on — the glyph appears to be *on*
+     delayed 110ms so it lands as the card passes edge-on — the glyph appears to be _on_
      the card, not fading through it.
    - **Match**: a single 300ms "pop" (`scale 1 → 1.08 → 1`) on both cards, then they settle
      into the matched state. No removal, no fly-away — the cards must not move (req. 3).
@@ -287,7 +327,22 @@ choose a language — it just contributes its display strings to the shared i18n
    - **Not persisted**: the deck, revealed cards, scores, or mid-round state. A reload
      starts a fresh round, matching `fast-calc` and `numbers-maze`.
    - **No records, no best times, no leaderboard, no move counter** — nothing competitive
-     or judgmental is stored or shown for the solo mode.
+     or judgmental is stored or shown for the solo mode. **Amended — see req. 9a below**:
+     a solo best-moves record was added post-implementation, at the human's request.
+
+9a. **Solo best-moves record (amended in, post-implementation, Decision 13)** — mirrors
+`fast-calc`'s per-config best-time record, but counting **moves** (one per second-card
+flip, i.e. one per match/mismatch attempt) instead of time, and only in **1-player**
+mode (2-player already has a winner via pair count; "fewest moves" has no single owner
+there): - `lg:memory-match:best-moves-{sizeId}-{typeId}` → number — the fewest moves it has
+ever taken to clear that size × type combination. Read as `null`/ignored if not a
+finite positive number (never throws on corrupt data). - The **setup screen** shows the current record for the selected size + type ("השיא
+שלך: {moves} ניסיונות" / "עדיין אין שיא בהרכב הזה"), refreshed on every size/type
+selection — same pattern as `fast-calc`'s `updateRecordDisplay()`. - On a **solo win**, the moves count is shown ("מספר ניסיונות: {moves}"); if it beats
+(or is the first-ever) record, the record is saved and "שיא חדש!" is shown, with the
+improvement amount when there was a prior record; otherwise the gap to the record is
+shown ("יותר ב-{count} ניסיונות מהשיא. אפשר לנסות שוב!") — encouraging, never framed
+as a failure, matching this game's existing no-"loser" tone.
 
 10. **Accessibility**:
     - The board is `role="grid"` with `aria-rowcount`/`aria-colcount`; rows are
@@ -370,7 +425,7 @@ choose a language — it just contributes its display strings to the shared i18n
 1. **One age range, 3–8.** The two informal bands the human described (3–5 and 6–8) are
    reconciled into a single `minAge: 3` / `maxAge: 8` manifest entry, because the manifest
    shape allows exactly one range per game id and per-variant entries are not permitted.
-   This is correct rather than merely convenient: the *same* game serves both bands via the
+   This is correct rather than merely convenient: the _same_ game serves both bands via the
    board-size parameter (4×4 for a 3-year-old, 16×16 for an 8-year-old), and the portal's
    overlap-based age filter surfaces a 3–8 game under both the 3–5 and 5–9 bands. No new
    portal band and no portal code change are needed.
@@ -428,7 +483,7 @@ choose a language — it just contributes its display strings to the shared i18n
    younger ones.
 
 8. **Matched cards stay on the board**, locked and dimmed, rather than being removed. The
-   game is built on remembering *where* things are; removing cells would reflow the grid,
+   game is built on remembering _where_ things are; removing cells would reflow the grid,
    invalidate that memory mid-round, and shift cards out from under a finger.
 
 9. **Storage is one key: `last-setup`.** No records, no fastest time, no move counter, no
@@ -450,6 +505,184 @@ choose a language — it just contributes its display strings to the shared i18n
 12. **Scope note.** Five files (three new, two one-entry additive edits), within the 1–5
     rule of thumb, with no shared-module or service-worker change. Full SDD is not
     warranted.
+
+13. **(Amended, post-implementation) Board sizes capped at 16 pairs; one card type added
+    per emoji family.** The human found 128 pairs (the original "huge" 16×16 tier)
+    excessive. Rather than just shrinking the top tier, the cap was set to exactly 16 —
+    the size of a single emoji family — so that **every** size fits inside **every**
+    type's pool, themed single-family types included, with no exceptions and no
+    restricted combinations (preserving the spirit of Decision 2 above). The three tiers
+    became 4×4/8, 4×6/12, 4×8/16 (columns fixed at 4 so every tier stays narrow enough to
+    never need horizontal scrolling); the 128-face mixed `emoji` and `colors` pools are
+    unchanged (they simply use fewer of their faces per round now), and each of the 8
+    existing `EMOJI_FAMILIES` is additionally exposed as its own type
+    (`CARD_TYPES` grew from 2 entries to 10) — a purely additive registry change, exactly
+    the extensibility req. 4 was designed for. This substantially shrinks how often
+    Tier B (board scrolling, req. 3) is ever reached in practice, though the mechanism
+    itself is unchanged and still exists for narrow-viewport edge cases.
+
+14. **(Amended, post-implementation) Board centering bug fix.** `.mm-board` is a
+    block-level `display: grid` element with no explicit width, so — like any block box —
+    it stretched to fill `.mm-board-container` rather than shrinking to its content; the
+    existing `margin-inline: auto` therefore had no free space to center into, and the
+    grid's own column tracks were left anchored to the inline-start edge (visually flush
+    right under `dir="rtl"`). Fixed by adding `justify-content: center` to `.mm-board`,
+    which centers the explicit column tracks within the stretched box regardless of
+    writing direction; `margin-inline: auto` was left in place as a harmless no-op.
+
+15. **(Amended, post-implementation) Pair-peek strip removed.** The human found the strip
+    appearing/disappearing confusing ("what's this?") and said it wasn't needed. Removing
+    it is also consistent with Decision 13 above: once board sizes were capped at 16 pairs
+    with a fixed 4-column width, the Tier B scrolling case the strip existed to compensate
+    for became rare to the point of not justifying the added UI. All of its DOM
+    construction, the `mm-peek*` CSS, the `ResizeObserver`-driven visibility logic, and the
+    `play.peek` i18n string were deleted; the underlying Tier A/Tier B board-sizing
+    mechanism itself (req. 3) is unchanged and still exists for narrow-viewport edge cases.
+
+16. **(Amended, post-implementation) Play-count record added.** Alongside the solo
+    best-moves record (req. 9a / Decision 13), a simple play counter was added: one per
+    size × type combination, incremented on every completed round regardless of player
+    count (unlike the moves record, which only makes sense solo). Stored at
+    `lg:memory-match:play-count-{sizeId}-{typeId}`, shown on the setup screen next to the
+    best-moves line as "שיחקת {count} פעמים", hidden entirely when 0 (redundant with the
+    "no record yet" line in that case).
+
+17. **(Amended, post-implementation) `100vw` → `100cqw` for the cell-size formula.**
+    `100vw` always includes the page's own vertical scrollbar gutter width; whenever the
+    page's scrollbar appeared or disappeared (the 1-player vs. 2-player HUD differ in
+    height, so this happened on almost every setup change), the formula computed cells a
+    few pixels too wide for the container's actual available width, tripping
+    `.mm-board-container`'s `overflow: auto` into a brief horizontal scrollbar.
+    `.mm-board-container` is now a container-query context (`container-type: inline-size`)
+    and the formula reads `100cqw`, measured from the container's own real layout width —
+    it can't disagree with itself the way a viewport-relative unit can. **This turned out
+    to be a real bug worth fixing but not the one the human was actually seeing** — see
+    Decision 19.
+
+18. **(Amended, post-implementation) Live moves counter in the play HUD.** A `.mm-hud__moves`
+    line ("נסיונות: {moves}") was added to both the 1- and 2-player HUD, updated
+    synchronously every time `state.moves` increments in `flipCard()` (i.e. after every
+    second-card flip). Distinct from the setup-screen best-moves/play-count lines (req. 9a),
+    which summarize _past_ rounds — this shows the _current_ round's attempt count live, per
+    the human's explicit request to see it "after each click."
+
+19. **(Amended, post-implementation) The real scrollbar cause: the match-pop animation,
+    not `100vw`.** After Decision 17's fix, the human still saw the board container's
+    scrollbar appear — specifically "when clicking on the lower rows." The actual cause:
+    `.mm-card--pop` (req. 8) scales a matched card `1 → 1.08 → 1` for 300ms. A matched card
+    in the container's bottom (or trailing-edge) row scales past the container's own
+    padding-less edge for that instant; since `.mm-board-container` is `overflow: auto`,
+    any positive scrollable overflow — even 4-8px for 300ms — shows a scrollbar. Fixed by
+    giving `.mm-board-container` `padding: var(--space-2)` (8px): CSS scrollable overflow
+    is measured at the **padding edge**, not the content edge, and `100cqw` already
+    resolves against the container's content box, so `.mm-board`'s cells automatically size
+    to fit _inside_ that padding with no separate adjustment. 8px comfortably covers the
+    worst case (8% of the 96px cell cap). The same latent risk existed on the setup
+    screen's new scrolling type strip (Decision 20) — an `overflow-x: auto` row with no
+    `overflow-y` set also computes `overflow-y: auto` per spec, so a hovered top-row card's
+    `translateY(-2px)` lift could trip a stray vertical scrollbar on that one row too — so
+    it was given matching `padding-block` up front rather than waiting for the same report
+    twice.
+
+20. **(Amended, post-implementation, superseded by Decision 21 within the same round of
+    feedback) Setup screen: card types as a horizontally scrolling strip — first attempt.**
+    Decision 2 turned 2 card types into 10; a wrapping grid of 10 icon+label cards pushed
+    the setup screen tall enough to need vertical scrolling on a phone, which the human
+    explicitly didn't want. The first fix tried was a single horizontally-scrolling,
+    snap-aligned strip for the type row only (`.mm-group__options--scroll`) — full-size
+    cards, unchanged vertical footprint, extra options reached by a horizontal swipe. The
+    human found the sideways scroll itself awkward and asked for a dropdown instead; see
+    Decision 21. This class was removed again — kept here only as the historical record of
+    what was tried and why it didn't stick.
+
+21. **(Amended, post-implementation) Setup screen: card type as a native `<select>`.**
+    Presented with a choice (compact icon-only grid / native dropdown / tap-to-open picker
+    sheet), the human picked a native dropdown. `CARD_TYPES` renders as `<option>`s
+    (`"{icon} {label}"` text, e.g. "🐶 חיות"), replacing the 10 option-cards entirely with
+    one compact `<select>` row; on mobile this opens the OS's own touch-friendly picker
+    sheet for free. Trade-off accepted knowingly: this is the one control in the game that
+    isn't a big icon+label tap-card, so it's slightly less friendly to a child who can't
+    read yet than the rest of the UI — acceptable because setup is typically a parent's
+    one-time task, not something the child repeats every round. The size and players
+    groups (3 and 2 options — small enough to never need this treatment) are unchanged.
+
+22. **(Amended, post-implementation) Setup screen compaction — the whole screen must fit
+    one viewport, no scrolling at all.** After Decision 21 the human still had to scroll to
+    reach the start button. Generalized the "no scrolling" requirement from just the type
+    picker to the _entire_ setup screen and tightened spacing accordingly: `.mm`'s
+    `padding-block` `--space-4` → `--space-2`, `.mm-setup`'s inter-group `gap` `--space-5`
+    → `--space-3` (both roughly halved), and the play-count line (`playCountEl`) is now
+    `hidden` outright rather than rendered empty when a size × type combination has never
+    been played — the common case for a new player, where reserving an empty line's height
+    for it costs space for no benefit. This is a general "fits one screen" design
+    principle, not specific to this game — see the constitution amendment adding it as a
+    platform-level UX principle (`.specify/memory/constitution.md`, Principle IV).
+
+23. **(Amended, post-implementation) Setup: size cards drop the pair-count text; type
+    dropdown drops the label text.** Continuing the "less text, more icons" direction (now
+    also a constitution principle, see Decision 22): size option cards keep only their
+    grid-density preview and name (קטן/בינוני/גדול) — the "{pairs} זוגות" line is gone, and
+    `setup.size.pairs` removed from both i18n tables as dead content. The type `<select>`'s
+    options now show only the type's icon (no label text); the full name survives as each
+    `<option>`'s `title` tooltip for desktop mouse users, at a deliberate, accepted
+    accessibility trade-off — a native option's accessible name is its visible text, so a
+    screen reader now hears the icon's platform-announced name rather than the Hebrew
+    label. The live moves counter (req. 9a amendment) is similarly now icon-led ("👆 {n}"
+    visually) with the full sentence kept as its `aria-label`.
+
+24. **(Amended, post-implementation) 2-player HUD redesigned as a side panel of
+    color+icon badges, no numerals.** The human disliked the top turn/score bar and asked
+    for it moved to the side, condensed, and for the "1"/"2" numerals to be dropped in
+    favor of color alone — with a gender-neutral kid icon suggested as the distinguishing
+    glyph. Implemented as `.mm-play--sidebar`: a `flex-direction: row` layout (the sidebar
+    lands on the reader's near/start side under both RTL and LTR, with no direction
+    special-casing) placing a narrow `.mm-hud--sidebar` beside the board instead of above
+    it. Each player is a `.mm-player-badge` — a colored circle (blue / green, the existing
+    `--mm-player-1`/`-2` tokens) holding a 🧒 glyph (unisex, per the platform's gender-neutral
+    copy rule — no boy/girl emoji pair, which would have reintroduced gender into an
+    abstract "player 1 vs player 2" distinction) and the pair count, no numeral shown.
+    Whose turn it is is a **scale + ring** on the active badge (`.mm-player-badge--active`),
+    not a color change — kept consistent with the "never color alone" a11y rule the rest of
+    this spec already follows. That rule is also why the visible numeral wasn't simply
+    deleted outright: each badge's `aria-label` (set by `updatePlayerBadges()`) still
+    composes the numeral + pairs sentence via the existing `play.score` i18n key, so
+    identity is color + icon + position on screen but still numeral-bearing for assistive
+    tech — nothing was actually lost for a screen reader user, only for sighted ones (by
+    design). The old `.mm-hud__turn`/`.mm-hud__scores`/`.mm-score-chip` play-view markup,
+    `updateTurnIndicator()`/`updateScoreChips()` (merged into one `updatePlayerBadges()`),
+    and the now-unused `play.turn` i18n key (a duplicate of `a11y.turn`, which is still used
+    for the live-region announcement) were removed. The end screen's winner/tie text is
+    unchanged — `playerLabel()` (numeral + colored circle) still composes sentences there,
+    where a bare color swatch mid-sentence wouldn't read as a sentence at all.
+
+25. **(Amended, post-implementation) A round of small HUD polish, all at the human's
+    request:**
+    - The solo progress line ("מצאת X מתוך Y זוגות") is gone — element, `updateProgress()`,
+      and the `play.progress` i18n key all removed. Solo mode's HUD is now just the live
+      moves counter; no progress, timer, or score, extending req. 9a's restraint further.
+    - The two 2-player badges sit side by side (`.mm-hud__players`, a small `gap`) inside
+      the sidebar, rather than stacked — still positioned as one unit beside the board.
+    - The board itself now carries a second, bigger turn cue: `.mm-board-container`'s own
+      border tints to the active player's color (`--mm-player-1`/`-2`), toggled by the same
+      `updatePlayerBadges()` that already drives the side badges. This is a **reinforcing**
+      color cue on top of the badges' shape-based one (scale + ring), not a replacement, so
+      whose turn it is still isn't conveyed by color alone overall. Border-**color** only,
+      never border-**width**, so it can't perturb the `100cqw` cell-size formula.
+    - The end screen's 2-player score summary now reuses the exact same `buildPlayerBadge()`
+      component as the side panel (icon + count, no numeral) instead of the old
+      `.mm-score-chip` pills — "the same icons as in the game," per the human's request. The
+      winning badge (if not a tie) carries the same active-style highlight repurposed to
+      mean "winner." `.mm-score-chip`/`--p1`/`--p2`/`--tie` CSS, now fully unused, was
+      removed. The winner-announcement sentence (`win.best`) is unchanged and still uses
+      `playerLabel()` (numeral + colored circle) — a prose sentence needs a textual
+      identifier, which a bare badge can't supply inline.
+    - The type `<select>`'s icon wasn't visually centered — the OS's native dropdown arrow
+      reserves asymmetric space on one side of the box, which `text-align: center` can't
+      compensate for. Fixed by wrapping the select in `.mm-select-wrap`, setting
+      `appearance: none` on the select itself (removing the native arrow entirely), and
+      drawing a custom chevron via the wrapper's `::after`, positioned with the logical
+      `inset-inline-end` (RTL-safe, unlike the physical `background-position: left/right`
+      keywords a naive custom-arrow approach would reach for).
 
 ## Plan
 

@@ -1,0 +1,658 @@
+/*
+ * game.css — memory-match: setup option cards, the board grid (Tier A/Tier B
+ * sizing), the 3D flip + glyph reveal + match pop animations, player color
+ * tokens/badges, focus rings, and prefers-reduced-motion fallbacks. Built on
+ * the shared design tokens (theme.css); logical properties only, no physical
+ * left/right.
+ *
+ * RTL note: rotateY is a 3D transform about the card's own axis and is
+ * unaffected by `dir` — it needs no direction special-casing and none is
+ * added here. No translateX/left/right appears anywhere in this file.
+ */
+
+.mm {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-3);
+  padding-block: var(--space-2);
+  text-align: center;
+
+  /* Player colors reuse existing theme tokens rather than inventing shades
+     (spec Decision 11) — both already carry documented >=4.5:1 contrast with
+     their on-* text in light and dark schemes. */
+  --mm-player-1: var(--color-primary);
+  --mm-player-2: var(--color-success);
+}
+
+.mm-heading {
+  font-size: var(--font-size-xl);
+  font-weight: 700;
+  margin: 0;
+}
+
+/* --- Setup screen --- */
+.mm-setup {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-3);
+  inline-size: 100%;
+  max-inline-size: 40rem;
+}
+
+.mm-group {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+  inline-size: 100%;
+}
+
+.mm-group__label {
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  color: var(--color-text-muted);
+}
+
+.mm-group__options {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--space-3);
+}
+
+/* Card type: a native <select>, not option cards (Decision 21) — 10 icon
+   cards was too tall for a no-scroll setup screen. A single compact row
+   that opens the OS's own touch-friendly picker on mobile. Wrapped in
+   .mm-select-wrap so its native arrow (which reserves asymmetric space and
+   throws off centering the icon) can be replaced with a custom one. */
+.mm-select-wrap {
+  position: relative;
+  display: inline-block;
+  inline-size: 100%;
+  max-inline-size: 12rem;
+}
+
+.mm-select-wrap::after {
+  content: "";
+  position: absolute;
+  inset-inline-end: var(--space-3);
+  inset-block-start: 50%;
+  inline-size: 0.6em;
+  block-size: 0.6em;
+  border-inline-end: 2px solid var(--color-text-muted);
+  border-block-end: 2px solid var(--color-text-muted);
+  transform: translateY(-75%) rotate(45deg);
+  pointer-events: none;
+}
+
+.mm-select {
+  appearance: none;
+  inline-size: 100%;
+  min-block-size: var(--touch-target-min);
+  padding-block: var(--space-2);
+  padding-inline-start: var(--space-3);
+  padding-inline-end: var(--space-6);
+  border-radius: var(--radius-lg);
+  border: 3px solid transparent;
+  background-color: var(--color-surface);
+  box-shadow: var(--shadow-card);
+  color: inherit;
+  font-family: inherit;
+  font-size: var(--font-size-2xl);
+  font-weight: 700;
+  text-align: center;
+  text-align-last: center;
+}
+
+.mm-select:focus-visible {
+  border-color: var(--color-primary);
+  outline: none;
+}
+
+.mm-option {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-1);
+  min-inline-size: 6.5rem;
+  min-block-size: var(--touch-target-min);
+  padding: var(--space-3);
+  border-radius: var(--radius-lg);
+  background-color: var(--color-surface);
+  box-shadow: var(--shadow-card);
+  border: 3px solid transparent;
+  text-align: center;
+  transition:
+    box-shadow var(--transition-base),
+    border-color var(--transition-fast),
+    transform var(--transition-base);
+}
+
+.mm-option:hover {
+  box-shadow: var(--shadow-card-hover);
+  transform: translateY(-2px);
+}
+
+/* Selection is shown by a filled state AND a checkmark, never color alone. */
+.mm-option[aria-pressed="true"] {
+  border-color: var(--color-primary);
+  background-color: var(--color-surface-alt);
+}
+
+.mm-option[aria-pressed="true"]::after {
+  content: "✓";
+  position: absolute;
+  inset-block-start: -0.5rem;
+  inset-inline-end: -0.5rem;
+  inline-size: 1.5rem;
+  block-size: 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background-color: var(--color-primary);
+  color: var(--color-on-primary);
+  font-size: var(--font-size-sm);
+  font-weight: 700;
+}
+
+.mm-option__icon {
+  font-size: var(--font-size-2xl);
+  line-height: 1;
+}
+
+.mm-option__name {
+  font-weight: 700;
+  font-size: var(--font-size-md);
+}
+
+.mm-option__preview {
+  display: grid;
+  gap: 1px;
+  grid-template-columns: repeat(var(--mm-preview-cols), 1fr);
+  inline-size: 2.75rem;
+  block-size: 2.75rem;
+  padding: 2px;
+}
+
+.mm-option__dot {
+  background-color: var(--color-primary);
+  opacity: 0.5;
+  border-radius: 1px;
+}
+
+.mm-setup__record {
+  font-size: var(--font-size-md);
+  color: var(--color-text-muted);
+  min-block-size: 1.5em;
+}
+
+.mm-setup__start {
+  min-inline-size: 12rem;
+}
+
+/* --- Play screen --- */
+.mm-play {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-3);
+  inline-size: 100%;
+}
+
+/* 2-player: HUD moves to a side panel next to the board instead of a header
+   above it (the human's request) — row layout respects writing direction on
+   its own (the sidebar lands on the reader's near/start side under RTL and
+   LTR alike), no direction special-casing needed. */
+.mm-play--sidebar {
+  flex-direction: row;
+  align-items: flex-start;
+  justify-content: center;
+  gap: var(--space-3);
+}
+
+.mm-hud {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-3);
+}
+
+.mm-hud--sidebar {
+  flex: none;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding-block-start: var(--space-1);
+}
+
+/* The two player badges side by side (a little space between them), rather
+   than stacked — still positioned as a unit in the side panel. */
+.mm-hud__players {
+  display: flex;
+  flex-direction: row;
+  gap: var(--space-2);
+}
+
+.mm-hud__moves {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+/* --- 2-player badges: a colored circle carries the player's identity (blue
+   / green) and a gender-neutral kid glyph — no numeral shown, per the
+   human's request. The circle's own aria-label (set in JS) still carries
+   the numeral for assistive tech, so identity is never color-alone there;
+   sighted players get color + icon + side-by-side position instead. --- */
+.mm-player-badge {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1px;
+  inline-size: 3.5rem;
+  block-size: 3.5rem;
+  border-radius: 50%;
+  transition:
+    transform var(--transition-base),
+    box-shadow var(--transition-base);
+}
+
+.mm-player-badge--p1 {
+  background-color: var(--mm-player-1);
+  color: var(--color-on-primary);
+}
+
+.mm-player-badge--p2 {
+  background-color: var(--mm-player-2);
+  color: var(--color-on-success);
+}
+
+/* The active player's turn: a scale-up + ring, not a color change, so whose
+   turn it is is never conveyed by color alone either. */
+.mm-player-badge--active {
+  transform: scale(1.15);
+  box-shadow:
+    0 0 0 3px var(--color-surface),
+    0 0 0 6px var(--color-text);
+}
+
+.mm-player-badge__icon {
+  font-size: var(--font-size-xl);
+  line-height: 1;
+}
+
+.mm-player-badge__count {
+  font-size: var(--font-size-md);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+/* --- Board container: Tier A centers with no scrolling; Tier B (a narrow
+   phone, if a board ever doesn't fit at the 44px floor) scrolls in both axes
+   while the page itself never scrolls horizontally. Deliberately NOT
+   touch-action: none (unlike numbers-maze) — this game's input is a
+   discrete tap, which does not fight native panning (spec Decision 4). --- */
+.mm-board-container {
+  /* A container query context, so .mm-board's cell formula below can read
+     this element's own content-box width via cqw. Deliberately NOT 100vw:
+     vw always includes the page's vertical scrollbar gutter, so whenever the
+     page's own scrollbar appeared or disappeared (e.g. switching between the
+     1-player and 2-player HUD, whose heights differ), a vw-based formula
+     would briefly compute cells a few pixels too wide for the actual
+     available width, tripping this container's own overflow:auto into a
+     transient horizontal scrollbar. cqw is measured from this element's real
+     layout width, so it can never disagree with itself that way. */
+  container-type: inline-size;
+  inline-size: 100%;
+  max-inline-size: 100%;
+  max-block-size: min(72dvh, 48rem);
+  overflow: auto;
+  overscroll-behavior: contain;
+  /* Breathing room for the match "pop" (scale 1 -> 1.08 -> 1, req. 8): a
+     matched card touching this container's edge would otherwise scale past
+     the padding-less border and trip overflow:auto into a scrollbar for the
+     animation's 300ms. Padding sits inside the scrollable frame (overflow is
+     measured at the padding edge, not the content edge), and 100cqw already
+     resolves against the content box, so .mm-board's cells size to fit
+     *inside* this padding automatically — no separate adjustment needed.
+     8px covers the worst case (8% of the 96px cell cap). */
+  padding: var(--space-2);
+  /* 2-player: a bigger, harder-to-miss turn cue than the side badges alone —
+     border-color only (never border-width), so it never nudges the 100cqw
+     cell-size formula, which resolves against the padding/content box. */
+  border: 4px solid transparent;
+  border-radius: var(--radius-lg);
+  transition: border-color var(--transition-base);
+}
+
+.mm-board-container--p1 {
+  border-color: var(--mm-player-1);
+}
+
+.mm-board-container--p2 {
+  border-color: var(--mm-player-2);
+}
+
+.mm-board {
+  /* 44px is a hard floor, never violated; 96px stops a 4x4 board becoming
+     absurd on a desktop. --mm-cols and --mm-gap are set inline by game.js;
+     this formula is the only thing that determines cell size — a resize or
+     rotation merely rescales the existing board via CSS. */
+  --mm-cell: clamp(
+    44px,
+    calc((100cqw - (var(--mm-cols) - 1) * var(--mm-gap)) / var(--mm-cols)),
+    96px
+  );
+  display: grid;
+  grid-template-columns: repeat(var(--mm-cols), var(--mm-cell));
+  grid-auto-rows: var(--mm-cell);
+  gap: var(--mm-gap);
+  /* A block-level grid container with no explicit width stretches to fill
+     its parent (like any block box) — margin-inline: auto alone has no free
+     space left to center into. justify-content centers the actual column
+     tracks within that stretched box, in either writing direction. */
+  justify-content: center;
+  margin-inline: auto;
+}
+
+/* Row wrappers carry the accessible role="row" grouping without adding a
+   layout level: display: contents lets their button children participate
+   directly in the parent's CSS Grid tracks. */
+.mm-board__row {
+  display: contents;
+}
+
+/* --- Cards: 3D flip --- */
+.mm-card {
+  position: relative;
+  inline-size: var(--mm-cell);
+  block-size: var(--mm-cell);
+  /* The UA sheet's default button padding (1px 6px) is not reset by
+     reset.css; left in place it would shrink .mm-card__inner — which sizes
+     to the *content* box — well below the cell, so the visible card art
+     would sit ~12px narrower than its 44px track. */
+  padding: 0;
+  perspective: 600px;
+  border-radius: var(--radius-sm);
+}
+
+.mm-card__inner {
+  position: relative;
+  display: block;
+  inline-size: 100%;
+  block-size: 100%;
+  transform-style: preserve-3d;
+  transition: transform 220ms ease-out;
+}
+
+.mm-card[data-face="up"] .mm-card__inner {
+  transform: rotateY(0.5turn);
+}
+
+.mm-card__face {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  border-radius: var(--radius-sm);
+  border: 2px solid var(--color-border);
+  backface-visibility: hidden;
+}
+
+/* Face-down: identical for every card, every type — leaks nothing about the
+   type. A subtle diagonal pattern distinguishes it from a flat fill. */
+.mm-card__face--back {
+  background-color: var(--color-surface-alt);
+  background-image: repeating-linear-gradient(
+    45deg,
+    var(--color-border) 0,
+    var(--color-border) 2px,
+    transparent 2px,
+    transparent 10px
+  );
+}
+
+.mm-card__face--front {
+  background-color: var(--color-surface);
+  transform: rotateY(0.5turn);
+}
+
+.mm-card__glyph {
+  font-size: calc(var(--mm-cell) * 0.62);
+  line-height: 1;
+}
+
+.mm-card__shape {
+  inline-size: calc(var(--mm-cell) * 0.62);
+  block-size: calc(var(--mm-cell) * 0.62);
+}
+
+.mm-card__shape--solid path {
+  fill: var(--mm-hue);
+  stroke: none;
+}
+
+.mm-card__shape--outline path {
+  fill: none;
+  stroke: var(--mm-hue);
+  stroke-width: 12;
+}
+
+/* Glyph reveal: opacity 0->1, scale .6->1, delayed so it lands as the card
+   passes edge-on — the glyph appears to be *on* the card, not fading
+   through it. Re-triggers every time data-face newly matches "up". */
+.mm-card__face--front .mm-card__glyph,
+.mm-card__face--front .mm-card__shape {
+  opacity: 0;
+  transform: scale(0.6);
+}
+
+.mm-card[data-face="up"] .mm-card__face--front .mm-card__glyph,
+.mm-card[data-face="up"] .mm-card__face--front .mm-card__shape {
+  animation: mm-glyph-reveal 150ms ease-out 110ms both;
+}
+
+@keyframes mm-glyph-reveal {
+  from {
+    opacity: 0;
+    transform: scale(0.6);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Matched: stays face-up, disabled, dimmed with a thicker border so it reads
+   as "done" without vanishing (req. 3: matched cards never move). */
+.mm-card--matched {
+  opacity: 0.7;
+}
+
+.mm-card--matched .mm-card__face--front {
+  border-width: 3px;
+}
+
+/* In 2 players, the matching player's border differs in BOTH color and
+   style (solid vs dashed) so the board stays readable in greyscale. */
+.mm-card--matched.mm-card--p1 .mm-card__face--front {
+  border-color: var(--mm-player-1);
+  border-style: solid;
+}
+
+.mm-card--matched.mm-card--p2 .mm-card__face--front {
+  border-color: var(--mm-player-2);
+  border-style: dashed;
+}
+
+.mm-card__badge {
+  position: absolute;
+  inset-block-start: 2px;
+  inset-inline-end: 2px;
+  min-inline-size: 1.15rem;
+  min-block-size: 1.15rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  font-size: 0.7rem;
+  font-weight: 700;
+  background-color: var(--color-surface);
+  color: var(--color-text);
+  border: 1px solid var(--color-border);
+}
+
+.mm-card--p1 .mm-card__badge {
+  background-color: var(--mm-player-1);
+  color: var(--color-on-primary);
+}
+
+.mm-card--p2 .mm-card__badge {
+  background-color: var(--mm-player-2);
+  color: var(--color-on-success);
+}
+
+/* Match pop: a single 300ms "pop", then settle back into the matched state
+   (no removal, no fly-away — cards must not move). */
+.mm-card--pop .mm-card__inner {
+  animation: mm-match-pop 300ms ease;
+}
+
+@keyframes mm-match-pop {
+  0% {
+    transform: rotateY(0.5turn) scale(1);
+  }
+
+  50% {
+    transform: rotateY(0.5turn) scale(1.08);
+  }
+
+  100% {
+    transform: rotateY(0.5turn) scale(1);
+  }
+}
+
+/* --- End screen --- */
+.mm-end {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-4);
+  inline-size: 100%;
+  max-inline-size: 32rem;
+}
+
+.mm-end__body {
+  font-size: var(--font-size-lg);
+  color: var(--color-text-muted);
+}
+
+.mm-end__scores {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--space-3);
+}
+
+.mm-end__actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--space-3);
+  margin-block-start: var(--space-3);
+}
+
+/* --- Confetti (shared/js/confetti.js builds the DOM; this owns the styling,
+   duplicated from fast-calc/numbers-maze since no shared CSS file exists) --- */
+.confetti {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 50;
+}
+
+.confetti__piece {
+  position: absolute;
+  inset-block-start: -5%;
+  inline-size: 0.6rem;
+  block-size: 1rem;
+  border-radius: var(--radius-sm);
+  opacity: 0.9;
+  animation-name: confetti-fall;
+  animation-timing-function: linear;
+  animation-fill-mode: forwards;
+}
+
+@keyframes confetti-fall {
+  from {
+    transform: translateY(-10%) rotate(0deg);
+    opacity: 1;
+  }
+
+  to {
+    transform: translateY(110vh) rotate(360deg);
+    opacity: 0.7;
+  }
+}
+
+/* --- prefers-reduced-motion: the flip becomes an instant face swap with a
+   90ms cross-fade (no rotation, no perspective); the glyph reveal and match
+   pop become static state changes. reset.css's global *,*::before,*::after
+   { transition-duration: 0.01ms !important } would otherwise also collapse
+   this cross-fade to near-zero, so it's restated here at higher specificity
+   to actually deliver the 90ms the spec asks for. --- */
+@media (prefers-reduced-motion: reduce) {
+  .mm-card {
+    perspective: none;
+  }
+
+  .mm-card__inner {
+    transform: none !important;
+    transition: none !important;
+  }
+
+  .mm-card__face {
+    backface-visibility: visible;
+    transition: opacity 90ms ease !important;
+  }
+
+  .mm-card__face--front {
+    transform: none !important;
+    opacity: 0;
+  }
+
+  .mm-card__face--back {
+    opacity: 1;
+  }
+
+  .mm-card[data-face="up"] .mm-card__face--front,
+  .mm-card--matched .mm-card__face--front {
+    opacity: 1;
+  }
+
+  .mm-card[data-face="up"] .mm-card__face--back,
+  .mm-card--matched .mm-card__face--back {
+    opacity: 0;
+  }
+
+  .mm-card__face--front .mm-card__glyph,
+  .mm-card__face--front .mm-card__shape {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+  }
+
+  .mm-card--pop .mm-card__inner {
+    animation: none !important;
+  }
+}
