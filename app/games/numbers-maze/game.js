@@ -11,7 +11,7 @@
  */
 
 import { applyDir, t } from "../../shared/js/i18n.js";
-import { renderHeader } from "../../shared/js/nav.js";
+import { renderHeader, setBackHandler } from "../../shared/js/nav.js";
 import * as storage from "../../shared/js/storage.js";
 import { preload, play as playSound } from "../../shared/js/audio.js";
 import { launchConfetti } from "../../shared/js/confetti.js";
@@ -160,6 +160,8 @@ function buildCountCard(count, completions, lastCount) {
  * @returns {void}
  */
 function renderStart() {
+  setBackHandler(null);
+
   const container = document.createElement("div");
   container.className = "maze-start";
 
@@ -209,6 +211,8 @@ function startRound(count) {
  * @returns {void}
  */
 function renderPlay() {
+  setBackHandler(renderStart);
+
   const container = document.createElement("div");
   container.className = "maze-play";
 
@@ -482,6 +486,8 @@ function handleWin() {
  * @returns {void}
  */
 function renderWin() {
+  setBackHandler(renderStart);
+
   const container = document.createElement("div");
   container.className = "maze-win";
 
