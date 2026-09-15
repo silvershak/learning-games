@@ -67,6 +67,13 @@ installable/offline via PWA. Language/RTL/i18n policy is set by the constitution
 - `app/shared/css/`: `reset.css`, `theme.css` (design tokens), `base.css` (layout,
   buttons, responsive, RTL). Games may override defaults in their own `game.css`.
 - Touch-first: large hit targets (≥44px), responsive for phone and tablet.
+- **Less text, more icons** — default to an icon alone; add a text label only when the
+  icon by itself wouldn't be understood, not as a matter of course.
+- **Pre-play screens fit one viewport, no scrolling** — the portal and any game's
+  setup/options screen must show every choice plus the primary action (e.g. "start")
+  within a single typical phone viewport. Gameplay screens that legitimately scroll
+  once play has begun (a large board) aren't covered. Prefer a more compact native
+  control (`<select>`, an icon-only row) over adding scrolling or a wizard step.
 
 ## Identifiers — one id per game
 

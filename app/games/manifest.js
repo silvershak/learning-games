@@ -48,6 +48,16 @@ export const games = [
     path: "games/numbers-maze/index.html",
     locked: false,
   },
+  {
+    id: "memory-match",
+    title: "משחק הזיכרון",
+    genre: "זיכרון",
+    minAge: 3,
+    maxAge: 8,
+    icon: "🃏",
+    path: "games/memory-match/index.html",
+    locked: false,
+  },
 ];
 
 /** Genres used by the portal's filter controls (Hebrew labels). */
