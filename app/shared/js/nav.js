@@ -30,12 +30,30 @@ export function goHome() {
 }
 
 /**
- * Navigates back to the previous page if there is browser history to go to,
- * otherwise falls back to the portal home.
+ * Whether the page was reached from another page within this site (same
+ * origin), as opposed to an external site (a search engine, a shared link,
+ * a bookmark) or typed directly into the address bar.
+ * @returns {boolean}
+ */
+function hasInternalReferrer() {
+  if (!document.referrer) return false;
+  try {
+    return new URL(document.referrer).origin === window.location.origin;
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Navigates back to the previous page if it was part of this site, otherwise
+ * falls back to the portal home. `history.length` alone isn't a safe signal:
+ * it also counts external pages (e.g. a search result the game was opened
+ * from), which would send `history.back()` off-site instead of to the
+ * portal.
  * @returns {void}
  */
 export function goBack() {
-  if (window.history.length > 1) {
+  if (hasInternalReferrer() && window.history.length > 1) {
     window.history.back();
   } else {
     goHome();
